@@ -1,9 +1,13 @@
 import HomeClient from "../components/HomeClient";
+import { getSession } from "../lib/getSession";
 
-export default function Home() {
+export default async function Home() {
+  const response = await getSession();
+  const session = (await response.json());
+
   return (
     <>
-      <HomeClient />
+      <HomeClient user={{ name: session.name, profilePic: session.profilePic }} />
     </>
   );
 }
