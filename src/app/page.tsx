@@ -3,11 +3,10 @@ import { getSession } from "../lib/getSession";
 
 export default async function Home() {
   const response = await getSession();
-  const session = (await response.json());
-
+  const session = await response.json();
   return (
     <>
-      <HomeClient user={{ name: session.name, profilePic: session.profilePic }} />
+      <HomeClient user={{ name: session?.name ?? "" }} />
     </>
   );
 }

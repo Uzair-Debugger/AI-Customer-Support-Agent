@@ -1,4 +1,4 @@
-import {  NEXT_PUBLIC_APP_URL, scalekit } from "@/src/config/env";
+import {  NEXT_PUBLIC_APP_URL, scalekit } from "@/config/env";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({message: "code is not found"}, {status: 400});
 
   const session = await scalekit.authenticateWithCode(code, redirectURL);
-  console.log(session);
+  
   const response = NextResponse.redirect(`${NEXT_PUBLIC_APP_URL}`)
   response.cookies.set("access_token", session.accessToken, {
     httpOnly: true,
