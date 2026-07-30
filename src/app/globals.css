@@ -1,1 +1,41 @@
 @import "tailwindcss";
+
+button {
+    cursor: pointer;
+}
+
+.hero-btn {
+    @apply px-7 py-3 rounded-xl font-medium transition;
+}
+
+.hero-btn-primary {
+    @apply bg-black text-white hover:bg-zinc-800 disabled:opacity-60;
+}
+
+.hero-btn-secondary {
+    @apply border border-zinc-300 text-zinc-700 hover:bg-zinc-100;
+}
+
+.chat-preview {
+    @apply rounded-2xl bg-white shadow-2xl border border-zinc-200 p-6;
+}
+
+.chat-header {
+    @apply text-sm text-zinc-500 mb-3;
+}
+
+.chat-message {
+    @apply rounded-lg px-4 py-2 text-sm w-fit;
+}
+
+.chat-message-user {
+    @apply bg-black text-white ml-auto;
+}
+
+.chat-message-bot {
+    @apply bg-zinc-100 text-zinc-700;
+}
+
+.floating-chat-icon {
+    @apply absolute -bottom-6 -right-6 w-14 h-14 rounded-full bg-black text-white flex items-center justify-center shadow-xl;
+}
