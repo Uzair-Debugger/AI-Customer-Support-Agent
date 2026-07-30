@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+    scroll-behavior: smooth;
+}
+
 :root {
     --accent: #6366f1;
     --accent-dark: #4f46e5;
@@ -9,38 +13,66 @@ button {
     cursor: pointer;
 }
 
+/* ── Buttons ── */
 .hero-btn {
-    @apply px-7 py-3 rounded-xl font-medium transition;
+    @apply px-7 py-3 rounded-xl font-medium transition-all duration-200;
 }
 
 .hero-btn-primary {
-    @apply bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60;
+    @apply bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 disabled:opacity-60 active:scale-95;
 }
 
 .hero-btn-secondary {
-    @apply border border-zinc-300 text-zinc-700 hover:bg-zinc-100;
+    @apply border border-zinc-300 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-400 active:scale-95;
 }
 
+/* ── Chat widget ── */
 .chat-preview {
-    @apply rounded-2xl bg-white shadow-2xl border border-indigo-100 p-6;
+    @apply rounded-2xl bg-white shadow-2xl border border-indigo-100/80 p-5 relative;
 }
 
 .chat-header {
-    @apply text-sm text-indigo-400 mb-3 font-medium;
+    @apply text-xs text-indigo-400 mb-4 font-semibold uppercase tracking-widest;
 }
 
 .chat-message {
-    @apply rounded-xl px-4 py-2 text-sm w-fit;
+    @apply rounded-2xl px-4 py-2.5 text-sm w-fit max-w-[85%] leading-relaxed;
 }
 
 .chat-message-user {
-    @apply bg-indigo-600 text-white ml-auto;
+    @apply bg-indigo-600 text-white ml-auto rounded-br-sm;
 }
 
 .chat-message-bot {
-    @apply bg-indigo-50 text-zinc-700;
+    @apply bg-zinc-100 text-zinc-700 rounded-bl-sm;
 }
 
 .floating-chat-icon {
-    @apply absolute -bottom-6 -right-6 w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-xl;
+    @apply absolute -bottom-5 -right-5 w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-300/50 text-lg;
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+    @apply bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-500 bg-clip-text text-transparent;
+}
+
+/* ── Feature cards ── */
+.feature-card {
+    @apply bg-white rounded-2xl p-7 border border-zinc-100 shadow-sm
+           hover:shadow-xl hover:shadow-indigo-100/60 hover:-translate-y-1
+           transition-all duration-300 cursor-default;
+}
+
+.feature-icon {
+    @apply w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-5;
+}
+
+/* ── Typing indicator ── */
+.typing-dot {
+    @apply w-2 h-2 rounded-full bg-zinc-400 animate-bounce;
+}
+
+/* ── Stat pill ── */
+.stat-pill {
+    @apply flex flex-col items-center px-6 py-3;
 }
