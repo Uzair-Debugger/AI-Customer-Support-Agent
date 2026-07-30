@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Customer Support Agent",
-  description: "AI powered chatbot that can be embed into any website to support Customer.",
+  title: "NexaSupport — AI Customer Support",
+  description: "NexaSupport is an AI-powered customer support agent you can embed into any website to deliver instant, intelligent help to your customers.",
 };
 
 export default function RootLayout({

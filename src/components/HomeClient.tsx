@@ -44,21 +44,21 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
   }, [])
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-white to-zinc-50 text-zinc-900 overflow-x-hidden '>
+    <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900 overflow-x-hidden '>
 
       <motion.div
         initial={{ y: -50 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-        className='fixed top-0 left-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-black'
+        className='fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-indigo-100'
       >
         <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
-          <div className='text-lg font-semibold tracking-tight'>Support <span className='text-zinc-400'>AI</span></div>
+          <div className='text-lg font-semibold tracking-tight'>Nexa<span className='text-indigo-500'>Support</span></div>
           {
             user.name ?
               <div className='relative' ref={popupRef}>
                 <div onClick={() => setTogglePopup(!togglePopup)}
-                  className='flex items-center p-2 font-medium text-lg rounded-full cursor-pointer text-green-500 bg-green-100'>
+                  className='flex items-center p-2 font-medium text-lg rounded-full cursor-pointer text-indigo-600 bg-indigo-100'>
                   <span>{firstName[0].toUpperCase()}{secName[0].toUpperCase()}</span>
                 </div>
 
@@ -83,7 +83,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
               </div>
               :
               <motion.button
-                className='px-5 py-2 rounded-full bg-black text-white text-sm font-medium hover:bg-zinc-800 transition disabled:opacity-60 flex items-center gap-2'
+                className='px-5 py-2 rounded-full bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-60 flex items-center gap-2'
                 onClick={handleLogin}
               >Login
               </motion.button>
@@ -104,14 +104,14 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
             transition={{ duration: 0.7 }}
           >
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
-              AI Customer Support <br />
+              Intelligent Customer Support <br />
               Built for Modern Websites
             </h1>
 
             <p className="mt-6 text-lg text-zinc-600 max-w-xl">
-              Add a powerful AI chatbot to your website in minutes.
-              Let your customers get instant answers using your own
-              business knowledge.
+              Embed a smart AI support agent into your website in minutes.
+              Give your customers instant, accurate answers powered by your
+              own business knowledge — no human intervention needed.
             </p>
 
             <div className="mt-10 flex gap-4">
@@ -184,7 +184,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
             transition={{ duration: 0.5 }}
             className='text-3xl font-semibold text-center'
           >
-            Why Businesses Choose SupportAI
+            Why Businesses Choose NexaSupport
           </motion.h2>
 
           <div className='mt-16 grid grid-cols-1 md:grid-cols-3 gap-10'>
@@ -209,8 +209,8 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
         </div>
       </section>
 
-      <footer className='py-10 text-sm text-center text-zinc-500'>
-        &copy;{new Date().getFullYear()} SupportAI. all rights reserved.
+      <footer className='py-10 text-sm text-center text-zinc-400'>
+        &copy;{new Date().getFullYear()} NexaSupport. All rights reserved.
       </footer>
     </div >
   )

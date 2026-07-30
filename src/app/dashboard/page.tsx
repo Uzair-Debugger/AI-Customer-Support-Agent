@@ -11,7 +11,7 @@ const page = () => {
     return (
         <div>
             <h1>
-                Dashboard
+                NexaSupport Dashboard
             </h1>
             <button type='submit' onSubmit={handleLogout}>Logout</button>
         </div>

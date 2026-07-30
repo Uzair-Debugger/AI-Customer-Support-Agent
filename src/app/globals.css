@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+:root {
+    --accent: #6366f1;
+    --accent-dark: #4f46e5;
+}
+
 button {
     cursor: pointer;
 }
@@ -9,7 +14,7 @@ button {
 }
 
 .hero-btn-primary {
-    @apply bg-black text-white hover:bg-zinc-800 disabled:opacity-60;
+    @apply bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60;
 }
 
 .hero-btn-secondary {
@@ -17,25 +22,25 @@ button {
 }
 
 .chat-preview {
-    @apply rounded-2xl bg-white shadow-2xl border border-zinc-200 p-6;
+    @apply rounded-2xl bg-white shadow-2xl border border-indigo-100 p-6;
 }
 
 .chat-header {
-    @apply text-sm text-zinc-500 mb-3;
+    @apply text-sm text-indigo-400 mb-3 font-medium;
 }
 
 .chat-message {
-    @apply rounded-lg px-4 py-2 text-sm w-fit;
+    @apply rounded-xl px-4 py-2 text-sm w-fit;
 }
 
 .chat-message-user {
-    @apply bg-black text-white ml-auto;
+    @apply bg-indigo-600 text-white ml-auto;
 }
 
 .chat-message-bot {
-    @apply bg-zinc-100 text-zinc-700;
+    @apply bg-indigo-50 text-zinc-700;
 }
 
 .floating-chat-icon {
-    @apply absolute -bottom-6 -right-6 w-14 h-14 rounded-full bg-black text-white flex items-center justify-center shadow-xl;
+    @apply absolute -bottom-6 -right-6 w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-xl;
 }
