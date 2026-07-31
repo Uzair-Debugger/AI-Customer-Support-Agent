@@ -5,19 +5,28 @@ async function main() {
   const user1 = await prisma.user.create({
     data: {
       name: "Tahir",
-      age: 22,
+      userEmail: "tahir@abc.com"
     },
   });
 
   const user2 = await prisma.user.create({
     data: {
       name: "Tayyab",
-      age: 14,
+      userEmail: "tayyab@abc.com"
     },
   });
 
   console.log(`Created! \nUser1: ${user1.name} and User2: ${user2.name}`);
 
+  // Delete everything now
+  await prisma.user.deleteMany({
+    where: {
+        name:{
+            in: [user1.name, user2.name]
+        }
+    }
+  });
+  console.log("Deleted!");
 }
 
 main()

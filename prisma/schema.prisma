@@ -12,9 +12,22 @@ datasource db {
   provider = "postgresql"
 }
 
-// user model
-model user {
-  id String @id @default(uuid())
-  name String 
-  age Int
+model User {
+  id        String    @id @default(cuid())
+  name      String    
+  userEmail String
+  settings  Settings?
+}
+
+model Settings {
+  id            String   @id @default(cuid())
+  businessName  String
+  supportEmail  String
+  knowledge     String
+
+  ownerId       String   @unique
+  owner         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
