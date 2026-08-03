@@ -16,10 +16,13 @@ export async function getSession() {
         }
 
         const response = await scalekit.user.getUser((client as { sub: string }).sub);
-        const name = response?.user?.userProfile?.name
+        const user = response?.user
 
-        return NextResponse.json({ message: "success", name }, { status: 200 })
-    } catch (error) {
-        return NextResponse.json({ message: "Invalid token", error })
+        return NextResponse.json({ message: "success", user: { id: user?.userProfile?.id, name: user?.userProfile?.name, email: user?.email, picture: user?.userProfile?.picture } }, { status: 200 })
     }
+    catch (error) {
+        console.error("Token validation error:", error)
+        return NextResponse.json({ message: "Invalid token", error: String(error) })
+    }
+
 }

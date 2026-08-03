@@ -6,7 +6,7 @@ export default async function Home() {
   const session = await response.json();
   return (
     <>
-      <HomeClient user={{ name: session?.name ?? "" }} />
+      <HomeClient user={{ name: session?.profile?.name ?? ""}} />
     </>
   );
 }

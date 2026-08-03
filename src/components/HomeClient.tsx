@@ -98,7 +98,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
                       <p className='text-xs text-zinc-400 font-medium'>Signed in as</p>
                       <p className='text-sm font-semibold text-zinc-800 truncate'>{user.name}</p>
                     </div>
-                    <button onClick={()=>navigate.push("/dashboard")}
+                    <button onClick={() => navigate.push("/dashboard")}
                       className='w-full text-left px-4 py-3 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors flex items-center gap-2'>
                       <span>🗂️</span> Dashboard
                     </button>
@@ -161,7 +161,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
 
             <div className='mt-9 flex flex-wrap items-center justify-center gap-4'>
               {user.name ? (
-                <button onClick={()=>navigate.push("/dashboard")}
+                <button onClick={() => navigate.push("/dashboard")}
                   className='hero-btn hero-btn-primary text-base px-8 py-3.5'>
                   Go to Dashboard
                 </button>
@@ -309,7 +309,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
             </p>
             <div className='relative mt-8 flex flex-wrap justify-center gap-4'>
               {user.name ? (
-                <button onClick={()=>navigate.push("/dashboard")}
+                <button onClick={() => navigate.push("/dashboard")}
                   className='px-8 py-3.5 rounded-xl bg-white text-indigo-600 font-semibold hover:bg-indigo-50 transition-colors shadow-lg'>
                   Go to Dashboard
                 </button >
