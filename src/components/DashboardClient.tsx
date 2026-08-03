@@ -5,27 +5,19 @@ import { useRouter } from 'next/navigation'
 
 type Settings = { businessName: string; supportEmail: string; knowledge: string }
 
-const DashboardClient = ({ user }: { user: { ownerId: string; name: string } }) => {
+const DashboardClient = ({ user, initialSettings }: {
+  user: { ownerId: string; name: string }
+  initialSettings: Settings
+}) => {
   const navigate = useRouter()
   const [togglePopup, setTogglePopup] = useState(false)
   const popupRef = useRef<HTMLDivElement>(null)
   const firstName = user.name.split(' ')[0] ?? ''
   const secName = user.name.split(' ')[1] ?? ''
 
-  const [form, setForm] = useState<Settings>({ businessName: '', supportEmail: '', knowledge: '' })
+  const [form, setForm] = useState<Settings>(initialSettings)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch(`/api/settings/get?ownerId=${user.ownerId}`)
-        const data = await res.json()
-        if (data) setForm({ businessName: data.businessName ?? '', supportEmail: data.supportEmail ?? '', knowledge: data.knowledge ?? '' })
-      } catch (error) { console.log(error) }
-    }
-    fetchSettings()
-  }, [user.ownerId])
 
   const handleSave = async () => {
     setSaving(true)
