@@ -1,4 +1,5 @@
 import { Scalekit } from "@scalekit-sdk/node";
+import Groq from "groq-sdk";
 import 'dotenv/config'
 
 export const scalekit = new Scalekit(
@@ -12,3 +13,10 @@ if (!process.env.NEXT_PUBLIC_APP_URL) {
 }
 
 export const NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+
+// ================================================================
+if (!process.env.GROQ_API_KEY) {
+  throw new Error("GROQ_API_KEY is not defined");
+}
+
+export const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
