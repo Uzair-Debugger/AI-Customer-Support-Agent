@@ -1,15 +1,23 @@
-'use client'
-import React from 'react'
+import DashboardClient from '@/components/DashboardClient'
+import { getSession } from '@/lib/getSession'
+import { prisma } from '@/lib/prisma'
 
-const page = () => {
-    const handleLogout = () => {
-        window.location.href = '/api/auth/logout'
-    }
+const page = async () => {
+    const response = await getSession()
+    const session = await response.json()
+    const ownerId = session?.user?.id ?? ''
+
+    const settings = ownerId ? await prisma.settings.findFirst({ where: { ownerId } }) : null
+
     return (
-        <div>
-            <h1>NexaSupport Dashboard</h1>
-            <button onClick={handleLogout}>Logout</button>
-        </div>
+        <DashboardClient
+            user={{ ownerId, name: session?.user?.name ?? '' }}
+            initialSettings={{
+                businessName: settings?.businessName ?? '',
+                supportEmail: settings?.supportEmail ?? '',
+                knowledge: settings?.knowledge ?? '',
+            }}
+        />
     )
 }
 
