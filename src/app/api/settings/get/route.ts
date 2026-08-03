@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req:NextRequest) {
 
     try {
-        const { ownerId } = await req.json()
+        const ownerId = req.nextUrl.searchParams.get('ownerId')
             if (!ownerId) {
               return NextResponse.json(
                 { message: "Owner id is required" },

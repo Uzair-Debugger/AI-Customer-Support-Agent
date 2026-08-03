@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(settings, { status: 200 });
+    return NextResponse.json(settings, { status: 201 });
   } catch (error) {
     console.error(error);
 
