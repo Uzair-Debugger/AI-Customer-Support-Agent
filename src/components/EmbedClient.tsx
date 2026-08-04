@@ -2,12 +2,13 @@
 import React, { useState } from 'react'
 import { motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
+import "dotenv/config"
 
 const EmbedClient = ({ ownerId }: { ownerId: string }) => {
     const navigate = useRouter()
     const [copied, setCopied] = useState(false)
 
-    const snippet = `<script src="http://localhost:3000/chatbot.js" data-owner-id="${ownerId}"></script>`
+    const snippet = `<script src="${process.env.NEXT_PUBLIC_APP_URL}/chatbot.js" data-owner-id="${ownerId}"></script>`
 
     const handleCopy = () => {
         navigator.clipboard.writeText(snippet)
