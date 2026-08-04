@@ -2,30 +2,18 @@ import "dotenv/config";
 import { prisma } from "@/lib/prisma";
 
 async function main() {
-  const user1 = await prisma.user.create({
+  const setting = await prisma.settings.create({
     data: {
-      name: "Tahir",
-      userEmail: "tahir@abc.com"
+      ownerId: "owner_seed_1",
+      businessName: "Acme Corp",
+      supportEmail: "support@acme.com",
+      knowledge: "We provide 24/7 customer support.",
     },
   });
 
-  const user2 = await prisma.user.create({
-    data: {
-      name: "Tayyab",
-      userEmail: "tayyab@abc.com"
-    },
-  });
+  console.log(`Created! Settings for: ${setting.businessName}`);
 
-  console.log(`Created! \nUser1: ${user1.name} and User2: ${user2.name}`);
-
-  // Delete everything now
-  await prisma.user.deleteMany({
-    where: {
-        name:{
-            in: [user1.name, user2.name]
-        }
-    }
-  });
+  await prisma.settings.delete({ where: { id: setting.id } });
   console.log("Deleted!");
 }
 
