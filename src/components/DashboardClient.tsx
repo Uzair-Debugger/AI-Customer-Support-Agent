@@ -72,10 +72,10 @@ const DashboardClient = ({ user, initialSettings }: {
             <span className='text-lg font-semibold tracking-tight'>Nexa<span className='text-indigo-500'>Support</span></span>
           </div>
 
-          <nav className='hidden md:flex items-center gap-7 text-sm text-zinc-500 font-medium'>
-            <button onClick={() => navigate.push('/dashboard')} className='hover:text-zinc-900 transition-colors'>Overview</button>
-            <button onClick={() => navigate.push('/dashboard/agents')} className='hover:text-zinc-900 transition-colors'>Agents</button>
-            <button onClick={() => navigate.push('/dashboard/settings')} className='hover:text-zinc-900 transition-colors'>Settings</button>
+          <nav className='hidden md:flex items-center gap-7 text-sm text-white font-medium'>
+            <button onClick={() => navigate.push('/embed')}
+              className='px-4 py-2 rounded-1g border border-zinc-300 text-sm transition hover:bg-indigo-600 bg-indigo-500'>
+              Embed Chat<span aria-label='robot-logo' className='text-xl'>🤖</span></button>
           </nav>
 
           <div className='relative' ref={popupRef}>
