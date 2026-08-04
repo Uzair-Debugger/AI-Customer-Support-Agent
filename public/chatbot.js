@@ -185,11 +185,42 @@
     const sendBtn    = box.querySelector("#nexa-send");
     const closeBtn   = box.querySelector("#nexa-close");
 
+    /* ── Markdown → HTML (lightweight) ── */
+    function parseMarkdown(text) {
+        return text
+            // Escape raw HTML to prevent injection
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            // Headers: ### ## #
+            .replace(/^### (.+)$/gm, "<h4 style='margin:10px 0 4px;font-size:13px;font-weight:700;color:#1e1b4b;'>$1</h4>")
+            .replace(/^## (.+)$/gm,  "<h3 style='margin:10px 0 4px;font-size:14px;font-weight:700;color:#1e1b4b;'>$1</h3>")
+            .replace(/^# (.+)$/gm,   "<h2 style='margin:10px 0 4px;font-size:15px;font-weight:700;color:#1e1b4b;'>$1</h2>")
+            // Bold + italic: ***text***
+            .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+            // Bold: **text**
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            // Italic: *text*
+            .replace(/\*(.+?)\*/g, "<em>$1</em>")
+            // Inline code: `code`
+            .replace(/`([^`]+)`/g, "<code style='background:#ede9fe;color:#4f46e5;padding:1px 5px;border-radius:4px;font-size:12px;font-family:monospace;'>$1</code>")
+            // Unordered list items: - item or * item
+            .replace(/^[\-\*] (.+)$/gm, "<li style='margin:3px 0 3px 16px;list-style:disc;'>$1</li>")
+            // Wrap consecutive <li> in <ul>
+            .replace(/(<li[^>]*>.*<\/li>\n?)+/g, m => `<ul style='margin:6px 0;padding:0;'>${m}</ul>`)
+            // Numbered list items: 1. item
+            .replace(/^\d+\. (.+)$/gm, "<li style='margin:3px 0 3px 16px;list-style:decimal;'>$1</li>")
+            // Horizontal rule: ---
+            .replace(/^---$/gm, "<hr style='border:none;border-top:1px solid #e0e7ff;margin:8px 0;'/>")
+            // Double newline → paragraph break
+            .replace(/\n{2,}/g, "<br/><br/>")
+            // Single newline → line break
+            .replace(/\n/g, "<br/>");
+    }
+
     /* ── Helpers ── */
     function addMessage(text, from) {
         const isUser = from === "user";
         const bubble = document.createElement("div");
-        bubble.innerHTML = text;
+        bubble.innerHTML = isUser ? text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") : parseMarkdown(text);
         Object.assign(bubble.style, {
             maxWidth:              "82%",
             padding:               "9px 13px",
