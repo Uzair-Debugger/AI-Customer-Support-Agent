@@ -1,8 +1,7 @@
 (function () {
 
-    const api_Url = "http://localhost:3000/api/chat"
-
     const scriptTag = document.currentScript;
+    const api_Url = new URL("/api/chat", scriptTag.src).href
     const ownerId = scriptTag.getAttribute("data-owner-id")
 
     if (!ownerId) {
