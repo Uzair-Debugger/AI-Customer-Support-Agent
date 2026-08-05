@@ -7,6 +7,10 @@ async function main() {
       ownerId: "owner_seed_1",
       businessName: "Acme Corp",
       supportEmail: "support@acme.com",
+      chatbotName: "Acme Support",
+      primaryColor: "#6c63ff",
+      secondaryColor: "#f0efff",
+      logo: "🤖",
       knowledge: "We provide 24/7 customer support.",
     },
   });
