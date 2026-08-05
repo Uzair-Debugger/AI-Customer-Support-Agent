@@ -13,9 +13,16 @@ const page = async () => {
         <DashboardClient
             user={{ ownerId, name: session?.user?.name ?? '' }}
             initialSettings={{
-                businessName: settings?.businessName ?? '',
-                supportEmail: settings?.supportEmail ?? '',
-                knowledge: settings?.knowledge ?? '',
+                businessName:    settings?.businessName    ?? '',
+                supportEmail:    settings?.supportEmail    ?? '',
+                chatbotName:     settings?.chatbotName     ?? '',
+                logo:            settings?.logo            ?? '',
+                primaryColor:    settings?.primaryColor    ?? '#6366f1',
+                secondaryColor:  settings?.secondaryColor  ?? '#4f46e5',
+                widgetPosition:  (settings?.widgetPosition ?? 'bottom-right') as 'bottom-right' | 'bottom-left',
+                greetingMessage: settings?.greetingMessage ?? '👋 Hi! How can I help you today?',
+                isActive:        settings?.isActive        ?? true,
+                knowledge:       settings?.knowledge       ?? '',
             }}
         />
     )

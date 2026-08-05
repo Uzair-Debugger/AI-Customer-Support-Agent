@@ -3,7 +3,35 @@ import React, { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
 
-type Settings = { businessName: string; supportEmail: string; knowledge: string }
+type Settings = {
+  businessName: string
+  supportEmail: string
+  chatbotName: string
+  logo: string
+  primaryColor: string
+  secondaryColor: string
+  widgetPosition: 'bottom-right' | 'bottom-left'
+  greetingMessage: string
+  isActive: boolean
+  knowledge: string
+}
+
+function hexLuminance(hex: string) {
+  if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return 0
+  const c = hex.replace('#', '')
+  const [r, g, b] = [0, 2, 4].map(i => {
+    const v = parseInt(c.slice(i, i + 2), 16) / 255
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+function contrastRatio(a: string, b: string) {
+  const l1 = hexLuminance(a), l2 = hexLuminance(b)
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05)
+}
+
+const MIN_CONTRAST = 2.5
 
 const DashboardClient = ({ user, initialSettings }: {
   user: { ownerId: string; name: string }
@@ -19,7 +47,11 @@ const DashboardClient = ({ user, initialSettings }: {
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
+  const contrast = contrastRatio(form.primaryColor, form.secondaryColor)
+  const contrastOk = contrast >= MIN_CONTRAST
+
   const handleSave = async () => {
+    if (!contrastOk) return
     setSaving(true)
     setStatus('idle')
     try {
@@ -55,6 +87,8 @@ const DashboardClient = ({ user, initialSettings }: {
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
+
+  const isSvg = form.logo.trimStart().startsWith('<')
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900'>
@@ -133,7 +167,7 @@ const DashboardClient = ({ user, initialSettings }: {
           {/* Card */}
           <div className='bg-white rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-100/60 p-8 space-y-10'>
 
-            {/* Business Details */}
+            {/* ── Business Details ── */}
             <section className='space-y-4'>
               <div>
                 <h2 className='text-base font-semibold text-zinc-900'>Business Details</h2>
@@ -165,7 +199,147 @@ const DashboardClient = ({ user, initialSettings }: {
 
             <div className='border-t border-zinc-100' />
 
-            {/* Knowledge Base */}
+            {/* ── Chatbot Appearance ── */}
+            <section className='space-y-6'>
+              <div>
+                <h2 className='text-base font-semibold text-zinc-900'>Chatbot Appearance</h2>
+                <p className='text-sm text-zinc-400 mt-0.5'>Customize how the widget looks on your site</p>
+              </div>
+
+              {/* Chatbot Name + Greeting */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Chatbot Name</label>
+                  <input
+                    type='text'
+                    value={form.chatbotName}
+                    onChange={e => setForm(f => ({ ...f, chatbotName: e.target.value }))}
+                    placeholder='e.g. SupportBot'
+                    className='w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition placeholder:text-zinc-400'
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Greeting Message</label>
+                  <input
+                    type='text'
+                    value={form.greetingMessage}
+                    onChange={e => setForm(f => ({ ...f, greetingMessage: e.target.value }))}
+                    placeholder='👋 Hi! How can I help you today?'
+                    className='w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition placeholder:text-zinc-400'
+                  />
+                </div>
+              </div>
+
+              {/* Logo */}
+              <div className='space-y-1.5'>
+                <label className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>
+                  Logo <span className='normal-case text-zinc-400'>(emoji or SVG code)</span>
+                </label>
+                <div className='flex gap-3 items-start'>
+                  <textarea
+                    rows={3}
+                    value={form.logo}
+                    onChange={e => setForm(f => ({ ...f, logo: e.target.value }))}
+                    placeholder={'💬   or   <svg xmlns="http://www.w3.org/2000/svg" ...>...</svg>'}
+                    className='flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-mono resize-none outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition placeholder:text-zinc-400'
+                  />
+                  {/* Live preview */}
+                  <div className='w-14 h-14 rounded-2xl border border-zinc-200 bg-zinc-50 flex items-center justify-center flex-shrink-0 overflow-hidden'>
+                    {form.logo
+                      ? isSvg
+                        ? <span className='w-8 h-8 [&>svg]:w-full [&>svg]:h-full' dangerouslySetInnerHTML={{ __html: form.logo }} />
+                        : <span className='text-2xl leading-none'>{form.logo}</span>
+                      : <span className='text-2xl leading-none'>💬</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              {/* Colors */}
+              <div className='space-y-3'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  {/* Primary */}
+                  <div className='space-y-1.5'>
+                    <label className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Primary Color</label>
+                    <div className='flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5'>
+                      <input
+                        type='color'
+                        value={form.primaryColor}
+                        onChange={e => setForm(f => ({ ...f, primaryColor: e.target.value }))}
+                        className='w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent p-0'
+                      />
+                      <span className='text-sm font-mono text-zinc-600'>{form.primaryColor}</span>
+                    </div>
+                  </div>
+                  {/* Secondary */}
+                  <div className='space-y-1.5'>
+                    <label className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Secondary Color</label>
+                    <div className='flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5'>
+                      <input
+                        type='color'
+                        value={form.secondaryColor}
+                        onChange={e => setForm(f => ({ ...f, secondaryColor: e.target.value }))}
+                        className='w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent p-0'
+                      />
+                      <span className='text-sm font-mono text-zinc-600'>{form.secondaryColor}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gradient preview */}
+                <div
+                  className='h-8 rounded-xl w-full'
+                  style={{ background: `linear-gradient(90deg, ${form.primaryColor}, ${form.secondaryColor})` }}
+                />
+
+                {/* Contrast feedback */}
+                <p className={`text-xs flex items-center gap-1.5 font-medium ${contrastOk ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {contrastOk
+                    ? `✓ Good contrast (${contrast.toFixed(1)}:1)`
+                    : `⚠ Low contrast (${contrast.toFixed(1)}:1) — minimum ${MIN_CONTRAST}:1 required`}
+                </p>
+              </div>
+
+              {/* Widget Position + Active toggle */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Widget Position</label>
+                  <div className='flex rounded-xl border border-zinc-200 overflow-hidden text-sm font-medium'>
+                    {(['bottom-right', 'bottom-left'] as const).map(pos => (
+                      <button
+                        key={pos}
+                        type='button'
+                        onClick={() => setForm(f => ({ ...f, widgetPosition: pos }))}
+                        className={`flex-1 py-2.5 transition-colors ${form.widgetPosition === pos
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'
+                        }`}
+                      >
+                        {pos === 'bottom-right' ? '↘ Bottom Right' : '↙ Bottom Left'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className='space-y-1.5'>
+                  <label className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Chatbot Status</label>
+                  <button
+                    type='button'
+                    onClick={() => setForm(f => ({ ...f, isActive: !f.isActive }))}
+                    className={`w-full py-2.5 rounded-xl border text-sm font-medium transition-colors ${form.isActive
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-zinc-100'
+                    }`}
+                  >
+                    {form.isActive ? '🟢 Active' : '⚫ Inactive'}
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <div className='border-t border-zinc-100' />
+
+            {/* ── Knowledge Base ── */}
             <section className='space-y-4'>
               <div>
                 <h2 className='text-base font-semibold text-zinc-900'>Knowledge Base</h2>
@@ -183,7 +357,7 @@ const DashboardClient = ({ user, initialSettings }: {
               </div>
             </section>
 
-            {/* Footer */}
+            {/* ── Footer ── */}
             <div className='flex items-center justify-between pt-2'>
               <AnimatePresence mode='wait'>
                 {status === 'success' && (
@@ -211,7 +385,8 @@ const DashboardClient = ({ user, initialSettings }: {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || !contrastOk}
+                title={!contrastOk ? `Increase color contrast to at least ${MIN_CONTRAST}:1 before saving` : undefined}
                 className='px-7 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed'
               >
                 {saving ? 'Saving…' : 'Save Changes'}

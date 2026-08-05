@@ -13,11 +13,18 @@ datasource db {
 }
 
 model Settings {
-  id           String @id @default(cuid())
-  ownerId      String @unique
-  businessName String
-  supportEmail String
-  knowledge    String
+  id              String  @id @default(cuid())
+  ownerId         String  @unique
+  businessName    String
+  supportEmail    String
+  chatbotName     String
+  primaryColor    String
+  secondaryColor  String
+  logo            String
+  knowledge       String
+  greetingMessage String  @default("👋 Hi! How can I help you today?")
+  widgetPosition  String  @default("bottom-right") // "bottom-right" | "bottom-left"
+  isActive        Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
