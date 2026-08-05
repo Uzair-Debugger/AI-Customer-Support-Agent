@@ -313,6 +313,7 @@
           raw += decoder.decode(value, { stream: true });
           bubble.innerHTML = parseMarkdown(raw);
           messages.scrollTop = messages.scrollHeight;
+          await new Promise((r) => setTimeout(r, 30));
         }
         if (!raw) bubble.innerHTML = "Sorry, something went wrong.";
       } catch {
