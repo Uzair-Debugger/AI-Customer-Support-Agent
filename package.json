@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:chatbot": "esbuild src/chatbot/index.js --bundle --outfile=public/chatbot.js --format=iife --platform=browser",
     "start": "next start",
     "lint": "eslint"
   },
@@ -25,6 +26,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "prisma": "^7.9.1",
