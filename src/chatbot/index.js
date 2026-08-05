@@ -80,7 +80,7 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
     btn.addEventListener("click", () => {
         if (!greeted && isOpen) {
             greeted = true;
-            setTimeout(() => addMessage(messages, s.greetingMessage, "ai", s.primaryColor), 300);
+            setTimeout(() => addMessage(messages, s.greetingMessage, "ai", s.primaryColor, s.secondaryColor), 300);
         }
     });
 
@@ -89,10 +89,10 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
         const text = input.value.trim();
         if (!text) return;
 
-        addMessage(messages, text, "user", s.primaryColor);
+        addMessage(messages, text, "user", s.primaryColor, s.secondaryColor);
         input.value = "";
 
-        const typing = addTypingIndicator(messages);
+        const typing = addTypingIndicator(messages, s.secondaryColor);
 
         try {
             const res  = await fetch(`${baseUrl}/api/chat`, {
@@ -102,10 +102,10 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
             });
             const data = await res.json();
             messages.removeChild(typing);
-            addMessage(messages, data.response || "Sorry, something went wrong.", "ai", s.primaryColor);
+            addMessage(messages, data.response || "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
         } catch {
             messages.removeChild(typing);
-            addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor);
+            addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
         }
     }
 

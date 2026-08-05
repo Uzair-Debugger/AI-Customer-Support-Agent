@@ -1,11 +1,27 @@
 "use strict";
 (() => {
   // src/chatbot/utils.js
-  function parseMarkdown(text) {
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/^### (.+)$/gm, "<h4 style='margin:10px 0 4px;font-size:13px;font-weight:700;color:#1e1b4b;'>$1</h4>").replace(/^## (.+)$/gm, "<h3 style='margin:10px 0 4px;font-size:14px;font-weight:700;color:#1e1b4b;'>$1</h3>").replace(/^# (.+)$/gm, "<h2 style='margin:10px 0 4px;font-size:15px;font-weight:700;color:#1e1b4b;'>$1</h2>").replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>").replace(/`([^`]+)`/g, "<code style='background:#ede9fe;color:#4f46e5;padding:1px 5px;border-radius:4px;font-size:12px;font-family:monospace;'>$1</code>").replace(/^[\-\*] (.+)$/gm, "<li style='margin:3px 0 3px 16px;list-style:disc;'>$1</li>").replace(/(<li[^>]*>.*<\/li>\n?)+/g, (m) => `<ul style='margin:6px 0;padding:0;'>${m}</ul>`).replace(/^\d+\. (.+)$/gm, "<li style='margin:3px 0 3px 16px;list-style:decimal;'>$1</li>").replace(/^---$/gm, "<hr style='border:none;border-top:1px solid #e0e7ff;margin:8px 0;'/>").replace(/\n{2,}/g, "<br/><br/>").replace(/\n/g, "<br/>");
+  function luminance(hex) {
+    const c = hex.replace("#", "");
+    const [r, g, b] = [0, 2, 4].map((i) => {
+      const v = parseInt(c.slice(i, i + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
-  function addMessage(messages, text, from, primaryColor) {
+  function readableTextColor(bgHex) {
+    return luminance(bgHex) > 0.35 ? "#1a1a2e" : "#ffffff";
+  }
+  function ensureVisible(hex) {
+    return luminance(hex) > 0.85 ? "#e8e8ee" : hex;
+  }
+  function parseMarkdown(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/^### (.+)$/gm, "<h4 style='margin:10px 0 4px;font-size:13px;font-weight:700;'>$1</h4>").replace(/^## (.+)$/gm, "<h3 style='margin:10px 0 4px;font-size:14px;font-weight:700;'>$1</h3>").replace(/^# (.+)$/gm, "<h2 style='margin:10px 0 4px;font-size:15px;font-weight:700;'>$1</h2>").replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>").replace(/`([^`]+)`/g, "<code style='background:rgba(0,0,0,0.12);padding:1px 5px;border-radius:4px;font-size:12px;font-family:monospace;'>$1</code>").replace(/^[\-\*] (.+)$/gm, "<li style='margin:3px 0 3px 16px;list-style:disc;'>$1</li>").replace(/(<li[^>]*>.*<\/li>\n?)+/g, (m) => `<ul style='margin:6px 0;padding:0;'>${m}</ul>`).replace(/^\d+\. (.+)$/gm, "<li style='margin:3px 0 3px 16px;list-style:decimal;'>$1</li>").replace(/^---$/gm, "<hr style='border:none;border-top:1px solid rgba(0,0,0,0.1);margin:8px 0;'/>").replace(/\n{2,}/g, "<br/><br/>").replace(/\n/g, "<br/>");
+  }
+  function addMessage(messages, text, from, primaryColor, secondaryColor) {
     const isUser = from === "user";
+    const bgColor = ensureVisible(isUser ? primaryColor : secondaryColor);
+    const txColor = readableTextColor(bgColor);
     const bubble = document.createElement("div");
     bubble.innerHTML = isUser ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : parseMarkdown(text);
     Object.assign(bubble.style, {
@@ -15,10 +31,10 @@
       fontSize: "13px",
       lineHeight: "1.5",
       alignSelf: isUser ? "flex-end" : "flex-start",
-      background: isUser ? primaryColor : "#fff",
-      color: isUser ? "#fff" : "#374151",
-      border: isUser ? "none" : "1px solid #e0e7ff",
-      boxShadow: isUser ? "0 2px 8px rgba(0,0,0,0.18)" : "0 1px 4px rgba(0,0,0,0.06)",
+      background: bgColor,
+      color: txColor,
+      border: "1px solid rgba(0,0,0,0.15)",
+      boxShadow: `0 2px 8px ${bgColor}40`,
       borderBottomRightRadius: isUser ? "4px" : "16px",
       borderBottomLeftRadius: isUser ? "16px" : "4px",
       animation: "nexa-fade-in 0.2s ease-out",
@@ -28,19 +44,21 @@
     messages.scrollTop = messages.scrollHeight;
     return bubble;
   }
-  function addTypingIndicator(messages) {
+  function addTypingIndicator(messages, secondaryColor) {
+    const bgColor = ensureVisible(secondaryColor);
+    const dotColor = readableTextColor(bgColor);
     const wrap = document.createElement("div");
     Object.assign(wrap.style, {
       display: "flex",
       alignItems: "center",
       gap: "5px",
       padding: "10px 13px",
-      background: "#fff",
-      border: "1px solid #e0e7ff",
+      background: bgColor,
       borderRadius: "16px",
       borderBottomLeftRadius: "4px",
       alignSelf: "flex-start",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+      border: "1px solid rgba(0,0,0,0.15)",
+      boxShadow: `0 2px 8px ${bgColor}40`,
       animation: "nexa-fade-in 0.2s ease-out"
     });
     [0, 150, 300].forEach((delay) => {
@@ -49,7 +67,8 @@
         width: "7px",
         height: "7px",
         borderRadius: "50%",
-        background: "#a5b4fc",
+        background: dotColor,
+        opacity: "0.7",
         display: "inline-block",
         animation: "nexa-bounce 1.2s ease-in-out infinite",
         animationDelay: `${delay}ms`
@@ -81,10 +100,10 @@
         }
         #nexa-messages::-webkit-scrollbar { width: 4px; }
         #nexa-messages::-webkit-scrollbar-track { background: transparent; }
-        #nexa-messages::-webkit-scrollbar-thumb { background: ${secondaryColor}80; border-radius: 99px; }
+        #nexa-messages::-webkit-scrollbar-thumb { background: ${secondaryColor}60; border-radius: 99px; }
         #nexa-input:focus { outline: none; border-color: ${primaryColor}; box-shadow: 0 0 0 3px ${primaryColor}26; }
-        #nexa-send:hover  { opacity: 0.85; }
-        #nexa-btn:hover   { opacity: 0.85; transform: scale(1.08); }
+        #nexa-send:hover { opacity: 0.85; }
+        #nexa-btn:hover  { opacity: 0.85; transform: scale(1.08); }
     `;
     document.head.appendChild(style);
   }
@@ -93,9 +112,10 @@
   function createButton(settings) {
     const { primaryColor, widgetPosition } = settings;
     const side = widgetPosition === "bottom-left" ? "left" : "right";
+    const txtColor = readableTextColor(primaryColor);
     const btn = document.createElement("button");
     btn.id = "nexa-btn";
-    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${txtColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
     Object.assign(btn.style, {
       position: "fixed",
       bottom: "24px",
@@ -104,7 +124,7 @@
       height: "56px",
       borderRadius: "50%",
       background: primaryColor,
-      color: "#fff",
+      color: txtColor,
       border: "none",
       display: "flex",
       alignItems: "center",
@@ -119,8 +139,11 @@
   function createBox(settings) {
     const { primaryColor, secondaryColor, widgetPosition, chatbotName, logo } = settings;
     const side = widgetPosition === "bottom-left" ? "left" : "right";
+    const headerTxt = readableTextColor(primaryColor);
+    const logoBgColor = secondaryColor;
+    const logoTxt = readableTextColor(logoBgColor);
     const isSvg = typeof logo === "string" && logo.trimStart().startsWith("<");
-    const logoHtml = isSvg ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">${logo}</span>` : `<span style="font-size:18px;line-height:1;">${logo || "\u{1F4AC}"}</span>`;
+    const logoHtml = isSvg ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${logoTxt};">${logo}</span>` : `<span style="font-size:18px;line-height:1;">${logo || "\u{1F4AC}"}</span>`;
     const box = document.createElement("div");
     box.id = "nexa-box";
     Object.assign(box.style, {
@@ -129,10 +152,10 @@
       [side]: "24px",
       width: "340px",
       height: "480px",
-      background: "#fff",
+      background: "#ffffff",
       borderRadius: "20px",
       boxShadow: "0 24px 64px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.08)",
-      border: "1px solid #e0e7ff",
+      border: `1px solid ${primaryColor}30`,
       display: "none",
       flexDirection: "column",
       overflow: "hidden",
@@ -141,59 +164,62 @@
       transformOrigin: `bottom ${side}`
     });
     box.innerHTML = `
+        <!-- Header -->
         <div style="
-            background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%);
+            background: ${primaryColor};
             padding: 14px 16px; display: flex; align-items: center;
             justify-content: space-between; flex-shrink: 0;
         ">
             <div style="display:flex; align-items:center; gap:10px;">
                 <div style="
                     width:36px; height:36px; border-radius:50%;
-                    background:rgba(255,255,255,0.2);
+                    background:${logoBgColor};
                     display:flex; align-items:center; justify-content:center;
                 ">${logoHtml}</div>
                 <div>
-                    <div style="color:#fff; font-size:14px; font-weight:600; line-height:1.2;">${chatbotName || "Support"}</div>
+                    <div style="color:${headerTxt}; font-size:14px; font-weight:600; line-height:1.2;">${chatbotName || "Support"}</div>
                     <div style="display:flex; align-items:center; gap:5px; margin-top:2px;">
                         <span style="
                             width:7px; height:7px; border-radius:50%; background:#4ade80;
                             display:inline-block; animation:nexa-pulse 2s ease-in-out infinite;
                         "></span>
-                        <span style="color:rgba(255,255,255,0.85); font-size:11px; font-weight:500;">Online</span>
+                        <span style="color:${headerTxt}; opacity:0.85; font-size:11px; font-weight:500;">Online</span>
                     </div>
                 </div>
             </div>
             <button id="nexa-close" style="
-                background:rgba(255,255,255,0.15); border:none; color:#fff;
+                background:rgba(0,0,0,0.15); border:none; color:${headerTxt};
                 width:28px; height:28px; border-radius:50%; cursor:pointer;
                 font-size:14px; display:flex; align-items:center; justify-content:center;
                 transition:background 0.15s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.25)'"
-               onmouseout="this.style.background='rgba(255,255,255,0.15)'">\u2715</button>
+            " onmouseover="this.style.background='rgba(0,0,0,0.25)'"
+               onmouseout="this.style.background='rgba(0,0,0,0.15)'">\u2715</button>
         </div>
 
+        <!-- Messages -->
         <div id="nexa-messages" style="
-            flex:1; padding:14px 12px; overflow-y:auto; background:#f8f9ff;
+            flex:1; padding:14px 12px; overflow-y:auto; background:#ffffff;
             display:flex; flex-direction:column; gap:8px;
         "></div>
 
+        <!-- Input -->
         <div style="
             display:flex; align-items:center; gap:8px; padding:10px 12px;
-            border-top:1px solid #e0e7ff; background:#fff; flex-shrink:0;
+            border-top:1px solid ${primaryColor}20; background:#fff; flex-shrink:0;
         ">
             <input id="nexa-input" type="text" placeholder="Type a message\u2026" style="
-                flex:1; padding:9px 13px; border:1.5px solid #e0e7ff;
+                flex:1; padding:9px 13px; border:1.5px solid ${primaryColor}30;
                 border-radius:12px; font-size:13px; font-family:inherit;
-                background:#f8f9ff; color:#1e1b4b;
+                background:#f9f9f9; color:#1a1a2e;
                 transition:border-color 0.2s, box-shadow 0.2s;
             "/>
             <button id="nexa-send" style="
                 width:36px; height:36px; border-radius:10px; background:${primaryColor};
-                border:none; color:#fff; cursor:pointer;
+                border:none; cursor:pointer;
                 display:flex; align-items:center; justify-content:center;
                 flex-shrink:0; transition:opacity 0.2s;
             ">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${readableTextColor(primaryColor)}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
             </button>
@@ -260,15 +286,15 @@
     btn.addEventListener("click", () => {
       if (!greeted && isOpen) {
         greeted = true;
-        setTimeout(() => addMessage(messages, s.greetingMessage, "ai", s.primaryColor), 300);
+        setTimeout(() => addMessage(messages, s.greetingMessage, "ai", s.primaryColor, s.secondaryColor), 300);
       }
     });
     async function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
-      addMessage(messages, text, "user", s.primaryColor);
+      addMessage(messages, text, "user", s.primaryColor, s.secondaryColor);
       input.value = "";
-      const typing = addTypingIndicator(messages);
+      const typing = addTypingIndicator(messages, s.secondaryColor);
       try {
         const res = await fetch(`${baseUrl}/api/chat`, {
           method: "POST",
@@ -277,10 +303,10 @@
         });
         const data = await res.json();
         messages.removeChild(typing);
-        addMessage(messages, data.response || "Sorry, something went wrong.", "ai", s.primaryColor);
+        addMessage(messages, data.response || "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
       } catch {
         messages.removeChild(typing);
-        addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor);
+        addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
       }
     }
     sendBtn.addEventListener("click", sendMessage);
