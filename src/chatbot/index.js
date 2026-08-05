@@ -1,4 +1,4 @@
-import { injectStyles, addMessage, addTypingIndicator } from "./utils.js";
+import { injectStyles, addMessage, addTypingIndicator, parseMarkdown } from "./utils.js";
 import { createButton, createBox } from "./ui.js";
 
 // Captured synchronously — document.currentScript becomes null inside async callbacks
@@ -91,21 +91,38 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
 
         addMessage(messages, text, "user", s.primaryColor, s.secondaryColor);
         input.value = "";
+        sendBtn.disabled = true;
 
         const typing = addTypingIndicator(messages, s.secondaryColor);
 
         try {
-            const res  = await fetch(`${baseUrl}/api/chat`, {
+            const res = await fetch(`${baseUrl}/api/chat`, {
                 method:  "POST",
                 headers: { "Content-Type": "application/json" },
                 body:    JSON.stringify({ message: text, ownerId }),
             });
-            const data = await res.json();
+
             messages.removeChild(typing);
-            addMessage(messages, data.response || "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
+            const bubble = addMessage(messages, "", "ai", s.primaryColor, s.secondaryColor);
+
+            const reader  = res.body.getReader();
+            const decoder = new TextDecoder();
+            let raw = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                raw += decoder.decode(value, { stream: true });
+                bubble.innerHTML = parseMarkdown(raw);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            if (!raw) bubble.innerHTML = "Sorry, something went wrong.";
         } catch {
             messages.removeChild(typing);
             addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
+        } finally {
+            sendBtn.disabled = false;
         }
     }
 
