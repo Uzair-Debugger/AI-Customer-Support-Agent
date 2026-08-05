@@ -220,10 +220,18 @@
       console.warn("[NexaSupport] Failed to load settings.", err);
       return;
     }
-    if (!settings?.isActive) return;
-    injectStyles(settings.primaryColor, settings.secondaryColor);
-    const btn = createButton(settings);
-    const box = createBox(settings);
+    if (settings?.isActive === false) return;
+    const s = {
+      chatbotName: settings?.chatbotName || "Support",
+      logo: settings?.logo || "\u{1F4AC}",
+      primaryColor: settings?.primaryColor || "#6366f1",
+      secondaryColor: settings?.secondaryColor || "#4f46e5",
+      widgetPosition: settings?.widgetPosition || "bottom-right",
+      greetingMessage: settings?.greetingMessage || "\u{1F44B} Hi! How can I help you today?"
+    };
+    injectStyles(s.primaryColor, s.secondaryColor);
+    const btn = createButton(s);
+    const box = createBox(s);
     document.body.appendChild(btn);
     document.body.appendChild(box);
     const messages = box.querySelector("#nexa-messages");
@@ -252,13 +260,13 @@
     btn.addEventListener("click", () => {
       if (!greeted && isOpen) {
         greeted = true;
-        setTimeout(() => addMessage(messages, settings.greetingMessage || "\u{1F44B} Hi! How can I help you today?", "ai", settings.primaryColor), 300);
+        setTimeout(() => addMessage(messages, s.greetingMessage, "ai", s.primaryColor), 300);
       }
     });
     async function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
-      addMessage(messages, text, "user", settings.primaryColor);
+      addMessage(messages, text, "user", s.primaryColor);
       input.value = "";
       const typing = addTypingIndicator(messages);
       try {
@@ -269,10 +277,10 @@
         });
         const data = await res.json();
         messages.removeChild(typing);
-        addMessage(messages, data.response || "Sorry, something went wrong.", "ai", settings.primaryColor);
+        addMessage(messages, data.response || "Sorry, something went wrong.", "ai", s.primaryColor);
       } catch {
         messages.removeChild(typing);
-        addMessage(messages, "Sorry, something went wrong.", "ai", settings.primaryColor);
+        addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor);
       }
     }
     sendBtn.addEventListener("click", sendMessage);

@@ -24,14 +24,25 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
         return;
     }
 
-    if (!settings?.isActive) return;
+    // Only bail if owner explicitly disabled the widget
+    if (settings?.isActive === false) return;
+
+    // Fallback defaults if no settings record exists yet
+    const s = {
+        chatbotName:     settings?.chatbotName     || "Support",
+        logo:            settings?.logo            || "💬",
+        primaryColor:    settings?.primaryColor    || "#6366f1",
+        secondaryColor:  settings?.secondaryColor  || "#4f46e5",
+        widgetPosition:  settings?.widgetPosition  || "bottom-right",
+        greetingMessage: settings?.greetingMessage || "👋 Hi! How can I help you today?",
+    };
 
     /* ── 2. Inject styles ── */
-    injectStyles(settings.primaryColor, settings.secondaryColor);
+    injectStyles(s.primaryColor, s.secondaryColor);
 
     /* ── 3. Mount UI ── */
-    const btn = createButton(settings);
-    const box = createBox(settings);
+    const btn = createButton(s);
+    const box = createBox(s);
     document.body.appendChild(btn);
     document.body.appendChild(box);
 
@@ -69,7 +80,7 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
     btn.addEventListener("click", () => {
         if (!greeted && isOpen) {
             greeted = true;
-            setTimeout(() => addMessage(messages, settings.greetingMessage || "👋 Hi! How can I help you today?", "ai", settings.primaryColor), 300);
+            setTimeout(() => addMessage(messages, s.greetingMessage, "ai", s.primaryColor), 300);
         }
     });
 
@@ -78,7 +89,7 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
         const text = input.value.trim();
         if (!text) return;
 
-        addMessage(messages, text, "user", settings.primaryColor);
+        addMessage(messages, text, "user", s.primaryColor);
         input.value = "";
 
         const typing = addTypingIndicator(messages);
@@ -91,10 +102,10 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
             });
             const data = await res.json();
             messages.removeChild(typing);
-            addMessage(messages, data.response || "Sorry, something went wrong.", "ai", settings.primaryColor);
+            addMessage(messages, data.response || "Sorry, something went wrong.", "ai", s.primaryColor);
         } catch {
             messages.removeChild(typing);
-            addMessage(messages, "Sorry, something went wrong.", "ai", settings.primaryColor);
+            addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor);
         }
     }
 
