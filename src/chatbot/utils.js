@@ -8,7 +8,13 @@ function luminance(hex) {
 }
 
 export function readableTextColor(bgHex) {
+    if (!bgHex || typeof bgHex !== "string") return "#ffffff";
     return luminance(bgHex) > 0.35 ? "#1a1a2e" : "#ffffff";
+}
+
+export function adaptSvgStroke(svgString, bgHex) {
+    const stroke = readableTextColor(bgHex);
+    return svgString.replace(/(stroke=["'])[^"']*(["'])/g, `$1${stroke}$2`);
 }
 
 function ensureVisible(hex) {

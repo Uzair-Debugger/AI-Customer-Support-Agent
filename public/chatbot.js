@@ -10,7 +10,12 @@
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
   function readableTextColor(bgHex) {
+    if (!bgHex || typeof bgHex !== "string") return "#ffffff";
     return luminance(bgHex) > 0.35 ? "#1a1a2e" : "#ffffff";
+  }
+  function adaptSvgStroke(svgString, bgHex) {
+    const stroke = readableTextColor(bgHex);
+    return svgString.replace(/(stroke=["'])[^"']*(["'])/g, `$1${stroke}$2`);
   }
   function ensureVisible(hex) {
     return luminance(hex) > 0.85 ? "#e8e8ee" : hex;
@@ -109,13 +114,13 @@
   }
 
   // src/chatbot/ui.js
+  var DEFAULT_SVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
   function createButton(settings) {
-    const { primaryColor, widgetPosition } = settings;
+    const { primaryColor, widgetPosition, logo } = settings;
     const side = widgetPosition === "bottom-left" ? "left" : "right";
-    const txtColor = readableTextColor(primaryColor);
     const btn = document.createElement("button");
     btn.id = "nexa-btn";
-    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${txtColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+    btn.innerHTML = adaptSvgStroke(logo || DEFAULT_SVG, primaryColor);
     Object.assign(btn.style, {
       position: "fixed",
       bottom: "24px",
@@ -124,7 +129,7 @@
       height: "56px",
       borderRadius: "50%",
       background: primaryColor,
-      color: txtColor,
+      color: readableTextColor(primaryColor),
       border: "none",
       display: "flex",
       alignItems: "center",
@@ -142,8 +147,9 @@
     const headerTxt = readableTextColor(primaryColor);
     const logoBgColor = secondaryColor;
     const logoTxt = readableTextColor(logoBgColor);
-    const isSvg = typeof logo === "string" && logo.trimStart().startsWith("<");
-    const logoHtml = isSvg ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${logoTxt};">${logo}</span>` : `<span style="font-size:18px;line-height:1;">${logo || "\u{1F4AC}"}</span>`;
+    const effectiveLogo = logo || DEFAULT_SVG;
+    const isSvg = effectiveLogo.trimStart().startsWith("<");
+    const logoHtml = isSvg ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">${adaptSvgStroke(effectiveLogo, logoBgColor)}</span>` : `<span style="font-size:18px;line-height:1;">${effectiveLogo}</span>`;
     const box = document.createElement("div");
     box.id = "nexa-box";
     Object.assign(box.style, {
@@ -249,7 +255,7 @@
     if (settings?.isActive === false) return;
     const s = {
       chatbotName: settings?.chatbotName || "Support",
-      logo: settings?.logo || "\u{1F4AC}",
+      logo: settings?.logo || "",
       primaryColor: settings?.primaryColor || "#6366f1",
       secondaryColor: settings?.secondaryColor || "#4f46e5",
       widgetPosition: settings?.widgetPosition || "bottom-right",
@@ -264,7 +270,7 @@
     const input = box.querySelector("#nexa-input");
     const sendBtn = box.querySelector("#nexa-send");
     const closeBtn = box.querySelector("#nexa-close");
-    const CHAT_SVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+    const CHAT_SVG = adaptSvgStroke(btn.innerHTML, s.primaryColor);
     const CLOSE_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     let isOpen = false;
     function openBox() {

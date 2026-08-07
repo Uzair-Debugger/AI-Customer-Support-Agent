@@ -89,7 +89,9 @@ const DashboardClient = ({ user, initialSettings }: {
     }
   }, [])
 
-  const isSvg = form.logo.trimStart().startsWith('<')
+  const DEFAULT_LOGO = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
+  const effectiveLogo = form.logo || DEFAULT_LOGO
+  const isSvg = effectiveLogo.trimStart().startsWith('<')
 
   return (
     <div className='min-h-screen bg-linear-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900'>
@@ -246,11 +248,9 @@ const DashboardClient = ({ user, initialSettings }: {
                   />
                   {/* Live preview */}
                   <div className='w-14 h-14 rounded-2xl border border-zinc-200 bg-zinc-50 flex items-center justify-center flex-shrink-0 overflow-hidden'>
-                    {form.logo
-                      ? isSvg
-                        ? <span className='w-8 h-8 [&>svg]:w-full [&>svg]:h-full' dangerouslySetInnerHTML={{ __html: form.logo }} />
-                        : <span className='text-2xl leading-none'>{form.logo}</span>
-                      : <span className='text-2xl leading-none'>💬</span>
+                    {isSvg
+                      ? <span className='w-8 h-8 [&>svg]:w-full [&>svg]:h-full text-zinc-600' dangerouslySetInnerHTML={{ __html: effectiveLogo }} />
+                      : <span className='text-2xl leading-none'>{effectiveLogo}</span>
                     }
                   </div>
                 </div>
