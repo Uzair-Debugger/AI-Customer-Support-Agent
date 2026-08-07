@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
+import FileUploader from './FileUploader'
 
 type Settings = {
   businessName: string
@@ -91,7 +92,7 @@ const DashboardClient = ({ user, initialSettings }: {
   const isSvg = form.logo.trimStart().startsWith('<')
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900'>
+    <div className='min-h-screen bg-linear-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900'>
 
       {/* ── Navbar ── */}
       <motion.header
@@ -313,7 +314,7 @@ const DashboardClient = ({ user, initialSettings }: {
                         className={`flex-1 py-2.5 transition-colors ${form.widgetPosition === pos
                           ? 'bg-indigo-600 text-white'
                           : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'
-                        }`}
+                          }`}
                       >
                         {pos === 'bottom-right' ? '↘ Bottom Right' : '↙ Bottom Left'}
                       </button>
@@ -329,7 +330,7 @@ const DashboardClient = ({ user, initialSettings }: {
                     className={`w-full py-2.5 rounded-xl border text-sm font-medium transition-colors ${form.isActive
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
                       : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-zinc-100'
-                    }`}
+                      }`}
                   >
                     {form.isActive ? '🟢 Active' : '⚫ Inactive'}
                   </button>
@@ -357,6 +358,7 @@ const DashboardClient = ({ user, initialSettings }: {
               </div>
             </section>
 
+            <FileUploader userId={user.ownerId} />
             {/* ── Footer ── */}
             <div className='flex items-center justify-between pt-2'>
               <AnimatePresence mode='wait'>

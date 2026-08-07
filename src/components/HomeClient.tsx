@@ -44,7 +44,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
   }, [])
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900 overflow-x-hidden'>
+    <div className='min-h-screen bg-linear-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900 overflow-x-hidden'>
 
       {/* ── Navbar ── */}
       <motion.header
