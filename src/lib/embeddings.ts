@@ -1,7 +1,9 @@
-const HF_API_URL = "https://router.huggingface.co/hf-inference/models/BAAI/bge-small-en-v1.5/pipeline/feature-extraction";
+import { BGE_EMBEDDING_MODEL } from "@/config/env";
+
+const BGE_API_URL = BGE_EMBEDDING_MODEL || "https://router.huggingface.co/hf-inference/models/BAAI/bge-small-en-v1.5/pipeline/feature-extraction";
 
 export async function embedText(text: string): Promise<number[]> {
-  const res = await fetch(HF_API_URL, {
+  const res = await fetch(BGE_API_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
+import FileUploader from './FileUploader'
 
 type Settings = {
   businessName: string
@@ -47,26 +48,6 @@ const DashboardClient = ({ user, initialSettings }: {
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploadStatus('uploading')
-    try {
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('ownerId', user.ownerId)
-      const res = await fetch('/api/chunkfile', { method: 'POST', body: fd })
-      setUploadStatus(res.ok ? 'success' : 'error')
-    } catch {
-      setUploadStatus('error')
-    } finally {
-      e.target.value = ''
-    }
-  }
-
   const contrast = contrastRatio(form.primaryColor, form.secondaryColor)
   const contrastOk = contrast >= MIN_CONTRAST
 
@@ -111,7 +92,7 @@ const DashboardClient = ({ user, initialSettings }: {
   const isSvg = form.logo.trimStart().startsWith('<')
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900'>
+    <div className='min-h-screen bg-linear-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900'>
 
       {/* ── Navbar ── */}
       <motion.header
@@ -333,7 +314,7 @@ const DashboardClient = ({ user, initialSettings }: {
                         className={`flex-1 py-2.5 transition-colors ${form.widgetPosition === pos
                           ? 'bg-indigo-600 text-white'
                           : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'
-                        }`}
+                          }`}
                       >
                         {pos === 'bottom-right' ? '↘ Bottom Right' : '↙ Bottom Left'}
                       </button>
@@ -349,7 +330,7 @@ const DashboardClient = ({ user, initialSettings }: {
                     className={`w-full py-2.5 rounded-xl border text-sm font-medium transition-colors ${form.isActive
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
                       : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-zinc-100'
-                    }`}
+                      }`}
                   >
                     {form.isActive ? '🟢 Active' : '⚫ Inactive'}
                   </button>
@@ -377,41 +358,7 @@ const DashboardClient = ({ user, initialSettings }: {
               </div>
             </section>
 
-            {/* ── Knowledge Files ── */}
-            <section className='space-y-4'>
-              <div>
-                <h2 className='text-base font-semibold text-zinc-900'>Knowledge Files</h2>
-                <p className='text-sm text-zinc-400 mt-0.5'>Upload .txt or .md files — they'll be chunked and stored for AI retrieval</p>
-              </div>
-              <div className='flex items-center gap-4'>
-                <input
-                  ref={fileInputRef}
-                  type='file'
-                  accept='.txt,.md'
-                  onChange={handleFileUpload}
-                  className='hidden'
-                />
-                <button
-                  type='button'
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadStatus === 'uploading'}
-                  className='px-5 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-medium hover:bg-indigo-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed'
-                >
-                  {uploadStatus === 'uploading' ? 'Uploading…' : '📄 Upload File'}
-                </button>
-                <AnimatePresence mode='wait'>
-                  {uploadStatus === 'success' && (
-                    <motion.p key='ok' initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                      className='text-sm text-emerald-600 font-medium'>✓ File uploaded & indexed</motion.p>
-                  )}
-                  {uploadStatus === 'error' && (
-                    <motion.p key='err' initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                      className='text-sm text-red-500 font-medium'>✕ Upload failed</motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
-            </section>
-
+            <FileUploader userId={user.ownerId} />
             {/* ── Footer ── */}
             <div className='flex items-center justify-between pt-2'>
               <AnimatePresence mode='wait'>

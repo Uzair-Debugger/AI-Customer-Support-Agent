@@ -29,3 +29,10 @@ export const qdrantClient = new QdrantClient({
   url: process.env.QDRANT_CLUSTER_ENDPOINT,
   apiKey: process.env.QDRANT_API_KEY,
 });
+
+// ===============================================================
+
+export const BGE_EMBEDDING_MODEL = process.env.BGE_API_URL;
+if(!BGE_EMBEDDING_MODEL){
+  throw new Error("BGE_API_URL is not defined");
+}

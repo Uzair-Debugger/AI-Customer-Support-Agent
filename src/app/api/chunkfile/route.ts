@@ -2,8 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { qdrantClient } from "@/config/env";
 import { embedText } from "@/lib/embeddings";
+import path from "path";
+import { extractText, getDocumentProxy } from "unpdf";
+import mammoth from "mammoth";
 
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
 const COLLECTION = "knowledge";
+const ALLOWED_EXTENSIONS = ['.txt', '.pdf', '.docx'];
+const ALLOWED_MIME_TYPES = [
+  "text/plain",
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
 async function ensureCollection() {
   const collections = await qdrantClient.getCollections();
@@ -28,7 +39,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Missing file or ownerId" }, { status: 400 });
   }
 
-  const text = await file.text();
+  if (file.size > MAX_FILE_SIZE) {
+    return NextResponse.json({ message: "File size exceeds the limit of 500MB." }, { status: 400 });
+  }
+
+  const fileName = file.name;
+  const mimeType = file.type;
+  const ext = path.extname(fileName).toLowerCase()
+  if(!ALLOWED_MIME_TYPES.includes(mimeType) || !ALLOWED_EXTENSIONS.includes(ext)){
+    return NextResponse.json({ message: "Invalid file type. Only .txt, .pdf, and .docx allowed." }, { status: 400 });
+  }
+  
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  let text = "";
+  if (mimeType === "application/pdf") {
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    const result = await extractText(pdf, { mergePages: true });
+    // extractText returns an object like { totalPages, text }
+    text = result && 
+            typeof result === "object" && 
+            "text" in result 
+            ? (result as {text:string}).text 
+            : String(result);
+  } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    const result = await mammoth.extractRawText({buffer});
+    text = result.value;
+  } else {
+    text = buffer.toString("utf-8");
+  }
+  console.log(text)
 
   const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
   const chunks = await splitter.splitText(text);
