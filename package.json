@@ -10,11 +10,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@langchain/textsplitters": "^1.0.1",
-    "@pinecone-database/pinecone": "^8.2.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@qdrant/js-client-rest": "^1.19.0",
     "@scalekit-sdk/node": "^2.10.0",
     "dotenv": "^17.4.2",
     "groq-sdk": "^1.5.0",

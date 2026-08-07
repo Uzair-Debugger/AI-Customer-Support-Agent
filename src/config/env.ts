@@ -1,5 +1,6 @@
 import { Scalekit } from "@scalekit-sdk/node";
 import Groq from "groq-sdk";
+import { QdrantClient } from "@qdrant/js-client-rest";
 import 'dotenv/config'
 
 export const scalekit = new Scalekit(
@@ -20,3 +21,11 @@ if (!process.env.GROQ_API_KEY) {
 }
 
 export const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+// ===============================================================
+
+
+export const qdrantClient = new QdrantClient({
+  url: process.env.QDRANT_CLUSTER_ENDPOINT,
+  apiKey: process.env.QDRANT_API_KEY,
+});

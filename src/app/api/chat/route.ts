@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { groq } from "@/config/env";
-
+import { groq, qdrantClient } from "@/config/env";
+import { embedText } from "@/lib/embeddings";
 
 export async function POST(req: NextRequest) {
     const { ownerId, message } = await req.json();
@@ -16,10 +16,29 @@ export async function POST(req: NextRequest) {
         return new Response("Chatbot is not configured yet.", { status: 404 });
     }
 
+    // Fetch relevant RAG context from Qdrant
+    let ragContext = "";
+    try {
+        const queryEmbedding = await embedText(message);
+        const results = await qdrantClient.query("knowledge", {
+            query: queryEmbedding,
+            limit: 5,
+            filter: { must: [{ key: "ownerId", match: { value: ownerId } }] },
+            with_payload: true,
+        });
+        ragContext = results.points
+            .map((r) => r.payload?.text as string)
+            .filter(Boolean)
+            .join("\n\n");
+    } catch (err) {
+        console.error("[chat] RAG error:", err);
+        // RAG unavailable, fall back to settings knowledge
+    }
+
     const KNOWLEDGE = `
         Business Name: ${setting.businessName || "Not Provided"}
         Support Email: ${setting.supportEmail || "Not Provided"}
-        Knowledge: ${setting.knowledge || "Not Provided"}
+        Knowledge Base: ${ragContext || setting.knowledge || "Not Provided"}
     `;
 
     const prompt = `
