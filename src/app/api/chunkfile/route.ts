@@ -8,7 +8,7 @@ import path from "path";
 import { extractText, getDocumentProxy } from "unpdf";
 import mammoth from "mammoth";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3 MB in bytes
 const COLLECTION = "knowledge";
 const ALLOWED_EXTENSIONS = ['.txt', '.pdf', '.docx'];
 const ALLOWED_MIME_TYPES = [

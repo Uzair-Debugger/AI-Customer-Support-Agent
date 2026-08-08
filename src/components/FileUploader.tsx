@@ -21,8 +21,8 @@ const FileUploader = ({ userId }: { userId: string }) => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size exceeds 5MB limit.');
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error('File size exceeds 3MB limit.');
       return;
     }
     setUploadStatus('uploading')
