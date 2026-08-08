@@ -30,6 +30,24 @@ async function ensureCollection() {
   }
 }
 
+export async function GET(req: NextRequest) {
+  const ownerId = req.nextUrl.searchParams.get("ownerId");
+  if (!ownerId) {
+    return NextResponse.json({ message: "Missing ownerId" }, { status: 400 });
+  }
+
+  try {
+    const result = await qdrantClient.scroll(COLLECTION, {
+      filter: { must: [{ key: "ownerId", match: { value: ownerId } }] },
+      limit: 1,
+    });
+    const exists = result.points && result.points.length > 0;
+    return NextResponse.json({ exists });
+  } catch {
+    return NextResponse.json({ message: "Failed to check file existence" }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
@@ -56,7 +74,6 @@ export async function POST(req: NextRequest) {
   if (mimeType === "application/pdf") {
     const pdf = await getDocumentProxy(new Uint8Array(buffer));
     const result = await extractText(pdf, { mergePages: true });
-    // extractText returns an object like { totalPages, text }
     text = result && 
             typeof result === "object" && 
             "text" in result 
@@ -79,6 +96,14 @@ export async function POST(req: NextRequest) {
 
   await ensureCollection();
 
+  const existing = await qdrantClient.scroll(COLLECTION, {
+    filter: { must: [{ key: "ownerId", match: { value: ownerId } }] },
+    limit: 1,
+  });
+  if (existing.points && existing.points.length > 0) {
+    return NextResponse.json({ message: "A file is already uploaded. Delete it first before uploading a new one." }, { status: 409 });
+  }
+
   const points = await Promise.all(
     chunks.map(async (chunk, i) => ({
       id: Math.abs(hashCode(`${ownerId}-${Date.now()}-${i}`)),
@@ -98,4 +123,41 @@ function hashCode(str: string): number {
     hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
   }
   return hash >>> 0; // unsigned 32-bit int
+}
+
+
+export async function DELETE(req:NextRequest) {
+  const {userId} = await req.json();
+  if(!userId){
+    return NextResponse.json({ message: "Missing userId" }, { status: 400 });
+  }
+
+  const existing = await qdrantClient.scroll(COLLECTION, {
+    filter: { must: [{ key: "ownerId", match: { value: userId } }] },
+    limit: 1,
+  });
+  if (!existing.points || existing.points.length === 0) {
+    return NextResponse.json({ message: "No files found to delete." }, { status: 404 });
+  }
+
+  const deleteChunk = await qdrantClient.delete(COLLECTION,
+    {
+      filter: {
+        must: [
+          {
+            key: "ownerId",
+            match: {
+              value: userId
+            }
+          }
+        ]
+      }
+    }
+  );
+
+  if(!deleteChunk){
+    return NextResponse.json({ message: "Failed to delete chunks" }, { status: 500 });
+  }
+
+  return NextResponse.json({message: "File chunks delete successfully."}, {status: 200})
 }
