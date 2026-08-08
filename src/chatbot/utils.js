@@ -8,7 +8,13 @@ function luminance(hex) {
 }
 
 export function readableTextColor(bgHex) {
+    if (!bgHex || typeof bgHex !== "string") return "#ffffff";
     return luminance(bgHex) > 0.35 ? "#1a1a2e" : "#ffffff";
+}
+
+export function adaptSvgStroke(svgString, bgHex) {
+    const stroke = readableTextColor(bgHex);
+    return svgString.replace(/(stroke=["'])[^"']*(["'])/g, `$1${stroke}$2`);
 }
 
 function ensureVisible(hex) {
@@ -124,6 +130,39 @@ export function injectStyles(primaryColor, secondaryColor) {
         #nexa-input:focus { outline: none; border-color: ${primaryColor}; box-shadow: 0 0 0 3px ${primaryColor}26; }
         #nexa-send:hover { opacity: 0.85; }
         #nexa-btn:hover  { opacity: 0.85; transform: scale(1.08); }
+
+        @media (max-width: 480px) {
+            #nexa-box {
+                width: calc(100% - 32px) !important;
+                height: calc(100% - 120px) !important;
+                left: 16px !important;
+                right: 16px !important;
+                bottom: 88px !important;
+                border-radius: 16px !important;
+            }
+            #nexa-box > div:first-child {
+                padding: 10px 12px !important;
+            }
+            #nexa-messages {
+                font-size: 12px !important;
+                padding: 10px 10px !important;
+            }
+            #nexa-input {
+                font-size: 12px !important;
+                padding: 8px 10px !important;
+            }
+            #nexa-send {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            #nexa-btn {
+                width: 48px !important;
+                height: 48px !important;
+                bottom: 16px !important;
+                left: auto !important;
+                right: 16px !important;
+            }
+        }
     `;
     document.head.appendChild(style);
 }

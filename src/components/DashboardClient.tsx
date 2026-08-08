@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import FileUploader from './FileUploader'
 
 type Settings = {
@@ -40,13 +41,17 @@ const DashboardClient = ({ user, initialSettings }: {
 }) => {
   const navigate = useRouter()
   const [togglePopup, setTogglePopup] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const popupRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
   const firstName = user.name.split(' ')[0] ?? ''
   const secName = user.name.split(' ')[1] ?? ''
 
   const [form, setForm] = useState<Settings>(initialSettings)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+
+  const hasChanges = JSON.stringify(form) !== JSON.stringify(initialSettings)
 
   const contrast = contrastRatio(form.primaryColor, form.secondaryColor)
   const contrastOk = contrast >= MIN_CONTRAST
@@ -61,9 +66,16 @@ const DashboardClient = ({ user, initialSettings }: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ownerId: user.ownerId, ...form }),
       })
-      setStatus(res.ok ? 'success' : 'error')
+      if (res.ok) {
+        setStatus('success')
+        toast.success('Settings saved successfully!')
+      } else {
+        setStatus('error')
+        toast.error('Failed to save settings. Please try again.')
+      }
     } catch {
       setStatus('error')
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -72,15 +84,22 @@ const DashboardClient = ({ user, initialSettings }: {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout')
-      window.location.href = '/'
-    } catch (error) { console.log(error) }
+      toast.success('You have been logged out.')
+      setTimeout(() => { window.location.href = '/' }, 800)
+    } catch (error) { toast.error('Logout failed.'); console.log(error) }
   }
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) setTogglePopup(false)
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) setMobileMenuOpen(false)
     }
-    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setTogglePopup(false) }
+    const handleKeyDown = (e: KeyboardEvent) => { 
+      if (e.key === 'Escape') { 
+        setTogglePopup(false)
+        setMobileMenuOpen(false)
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleKeyDown)
     return () => {
@@ -89,7 +108,9 @@ const DashboardClient = ({ user, initialSettings }: {
     }
   }, [])
 
-  const isSvg = form.logo.trimStart().startsWith('<')
+  const DEFAULT_LOGO = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
+  const effectiveLogo = form.logo || DEFAULT_LOGO
+  const isSvg = effectiveLogo.trimStart().startsWith('<')
 
   return (
     <div className='min-h-screen bg-linear-to-br from-white via-indigo-50/30 to-violet-50/40 text-zinc-900'>
@@ -107,12 +128,6 @@ const DashboardClient = ({ user, initialSettings }: {
             <span className='text-lg font-semibold tracking-tight'>Nexa<span className='text-indigo-500'>Support</span></span>
           </div>
 
-          <nav className='hidden md:flex items-center gap-7 text-sm text-white font-medium'>
-            <button onClick={() => navigate.push('/embed')}
-              className='px-4 py-2 rounded-1g border border-zinc-300 text-sm transition hover:bg-indigo-600 bg-indigo-500'>
-              Embed Chat<span aria-label='robot-logo' className='text-xl'>🤖</span></button>
-          </nav>
-
           <div className='relative' ref={popupRef}>
             <button
               onClick={() => setTogglePopup(!togglePopup)}
@@ -121,7 +136,7 @@ const DashboardClient = ({ user, initialSettings }: {
               <span className='w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-semibold flex items-center justify-center'>
                 {firstName[0]?.toUpperCase()}{secName[0]?.toUpperCase()}
               </span>
-              <span className='text-sm font-medium text-indigo-700'>{firstName}</span>
+              <span className='text-sm font-medium text-indigo-700 hidden sm:inline'>{firstName}</span>
             </button>
 
             <AnimatePresence>
@@ -147,6 +162,35 @@ const DashboardClient = ({ user, initialSettings }: {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className='md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-zinc-100 transition-colors'
+            aria-label='Toggle menu'
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {mobileMenuOpen ? (
+                <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+              ) : (
+                <><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>
+              )}
+            </svg>
+          </button>
+
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <div ref={mobileMenuRef} className='absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-indigo-100 md:hidden z-40'>
+              <div className='px-6 py-4'>
+                <button
+                  onClick={() => { handleLogout(); setMobileMenuOpen(false) }}
+                  className='w-full text-left text-sm text-red-500 hover:text-red-600 py-2 font-medium'
+                >
+                  🚪 Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </motion.header>
 
@@ -159,14 +203,14 @@ const DashboardClient = ({ user, initialSettings }: {
           className='w-full max-w-4xl'
         >
           {/* Page header */}
-          <div className='mb-8'>
+          <div className='mb-6 sm:mb-8'>
             <span className='text-xs font-semibold text-indigo-500 uppercase tracking-widest'>Dashboard</span>
-            <h1 className='mt-2 text-3xl font-bold tracking-tight'>ChatBot Settings</h1>
-            <p className='text-zinc-500 mt-1'>Manage your AI chatbot knowledge and business details</p>
+            <h1 className='mt-2 text-2xl sm:text-3xl font-bold tracking-tight'>ChatBot Settings</h1>
+            <p className='text-zinc-500 mt-1 text-sm sm:text-base'>Manage your AI chatbot knowledge and business details</p>
           </div>
 
           {/* Card */}
-          <div className='bg-white rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-100/60 p-8 space-y-10'>
+          <div className='bg-white rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-100/60 p-5 sm:p-8 space-y-8 sm:space-y-10'>
 
             {/* ── Business Details ── */}
             <section className='space-y-4'>
@@ -245,12 +289,10 @@ const DashboardClient = ({ user, initialSettings }: {
                     className='flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-mono resize-none outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition placeholder:text-zinc-400'
                   />
                   {/* Live preview */}
-                  <div className='w-14 h-14 rounded-2xl border border-zinc-200 bg-zinc-50 flex items-center justify-center flex-shrink-0 overflow-hidden'>
-                    {form.logo
-                      ? isSvg
-                        ? <span className='w-8 h-8 [&>svg]:w-full [&>svg]:h-full' dangerouslySetInnerHTML={{ __html: form.logo }} />
-                        : <span className='text-2xl leading-none'>{form.logo}</span>
-                      : <span className='text-2xl leading-none'>💬</span>
+                  <div className='w-14 h-14 rounded-2xl border border-zinc-200 bg-zinc-50 flex items-center justify-center shrink-0 overflow-hidden'>
+                    {isSvg
+                      ? <span className='w-8 h-8 [&>svg]:w-full [&>svg]:h-full text-zinc-600' dangerouslySetInnerHTML={{ __html: effectiveLogo }} />
+                      : <span className='text-2xl leading-none'>{effectiveLogo}</span>
                     }
                   </div>
                 </div>
@@ -360,7 +402,7 @@ const DashboardClient = ({ user, initialSettings }: {
 
             <FileUploader userId={user.ownerId} />
             {/* ── Footer ── */}
-            <div className='flex items-center justify-between pt-2'>
+              <div className='flex flex-col sm:flex-row items-center justify-between gap-4 pt-2'>
               <AnimatePresence mode='wait'>
                 {status === 'success' && (
                   <motion.p
@@ -383,16 +425,25 @@ const DashboardClient = ({ user, initialSettings }: {
                 {status === 'idle' && <span key='idle' />}
               </AnimatePresence>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleSave}
-                disabled={saving || !contrastOk}
-                title={!contrastOk ? `Increase color contrast to at least ${MIN_CONTRAST}:1 before saving` : undefined}
-                className='px-7 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed'
-              >
-                {saving ? 'Saving…' : 'Save Changes'}
-              </motion.button>
+              <div className='flex flex-col sm:flex-row items-center gap-3 sm:gap-7 text-sm text-white font-medium'>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleSave}
+                  disabled={saving || !hasChanges || !contrastOk}
+                  title={!contrastOk ? `Increase color contrast to at least ${MIN_CONTRAST}:1 before saving` : undefined}
+                  className='px-4 py-2 rounded-1g border border-zinc-300 text-sm hover:bg-indigo-600 bg-indigo-500 transition-colors shadow-md shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed'
+                >
+                  {saving ? 'Saving…' : 'Save Changes'}
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate.push('/embed')}
+                  className='px-4 py-2 rounded-1g border border-zinc-300 text-sm transition hover:bg-indigo-600 bg-indigo-500'>
+                  Embed Chatbot</motion.button>
+              </div>
             </div>
 
           </div>

@@ -1,4 +1,4 @@
-import { injectStyles, addMessage, addTypingIndicator, parseMarkdown } from "./utils.js";
+import { injectStyles, addMessage, addTypingIndicator, parseMarkdown, adaptSvgStroke } from "./utils.js";
 import { createButton, createBox } from "./ui.js";
 
 // Captured synchronously — document.currentScript becomes null inside async callbacks
@@ -30,7 +30,7 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
     // Fallback defaults if no settings record exists yet
     const s = {
         chatbotName:     settings?.chatbotName     || "Support",
-        logo:            settings?.logo            || "💬",
+        logo:            settings?.logo            || "",
         primaryColor:    settings?.primaryColor    || "#6366f1",
         secondaryColor:  settings?.secondaryColor  || "#4f46e5",
         widgetPosition:  settings?.widgetPosition  || "bottom-right",
@@ -52,7 +52,7 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
     const closeBtn = box.querySelector("#nexa-close");
 
     /* ── 4. Open / close ── */
-    const CHAT_SVG  = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+    const CHAT_SVG = adaptSvgStroke(btn.innerHTML, s.primaryColor);
     const CLOSE_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
     let isOpen = false;

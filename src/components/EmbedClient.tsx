@@ -1,18 +1,21 @@
 'use client'
 import React, { useState } from 'react'
+import { NEXT_PUBLIC_APP_URL } from '@/config/env'
 import { motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
 import "dotenv/config"
+import { toast } from 'sonner'
 
 const EmbedClient = ({ ownerId }: { ownerId: string }) => {
     const navigate = useRouter()
     const [copied, setCopied] = useState(false)
 
-    const snippet = `<script src="${process.env.NEXT_PUBLIC_APP_URL}/chatbot.js" data-owner-id="${ownerId}"></script>`
+    const snippet = `<script src="${NEXT_PUBLIC_APP_URL}/chatbot.js" data-owner-id="${ownerId}"></script>`
 
     const handleCopy = () => {
         navigator.clipboard.writeText(snippet)
         setCopied(true)
+        toast.success('Embed snippet copied to clipboard!')
         setTimeout(() => setCopied(false), 2000)
     }
 
@@ -29,13 +32,22 @@ const EmbedClient = ({ ownerId }: { ownerId: string }) => {
                 <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
                     <div className='flex items-center gap-2 cursor-pointer' onClick={() => navigate.push('/')}>
                         <div className='w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-indigo-200'>N</div>
-                        <span className='text-lg font-semibold tracking-tight'>Nexa<span className='text-indigo-500'>Support</span></span>
+                        <span className='text-lg font-semibold tracking-tight hidden sm:inline'>Nexa<span className='text-indigo-500'>Support</span></span>
                     </div>
                     <button
                         onClick={() => navigate.push('/dashboard')}
-                        className='px-4 py-2 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 transition-colors'
+                        className='hidden sm:flex px-4 py-2 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 transition-colors items-center gap-1'
                     >
                         ← Back to Dashboard
+                    </button>
+                    <button
+                        onClick={() => navigate.push('/dashboard')}
+                        className='sm:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-zinc-100 transition-colors'
+                        aria-label='Back to Dashboard'
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                        </svg>
                     </button>
                 </div>
             </motion.header>
@@ -48,15 +60,14 @@ const EmbedClient = ({ ownerId }: { ownerId: string }) => {
                     transition={{ duration: 0.5, ease: 'easeOut' }}
                     className='w-full max-w-3xl'
                 >
-                    {/* Page header */}
-                    <div className='mb-8'>
+                    <div className='mb-6 sm:mb-8'>
                         <span className='text-xs font-semibold text-indigo-500 uppercase tracking-widest'>Embed</span>
-                        <h1 className='mt-2 text-3xl font-bold tracking-tight'>Add Chat to Your Website</h1>
-                        <p className='text-zinc-500 mt-1'>Copy the snippet below and paste it before the closing <code className='text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded text-xs'>&lt;/body&gt;</code> tag</p>
+                        <h1 className='mt-2 text-2xl sm:text-3xl font-bold tracking-tight'>Add Chat to Your Website</h1>
+                        <p className='text-zinc-500 mt-1 text-sm sm:text-base'>Copy the snippet below and paste it before the closing <code className='text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded text-xs'>&lt;/body&gt;</code> tag</p>
                     </div>
 
                     {/* Card */}
-                    <div className='bg-white rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-100/60 p-8 space-y-8'>
+                    <div className='bg-white rounded-3xl border border-zinc-100 shadow-xl shadow-zinc-100/60 p-5 sm:p-8 space-y-6 sm:space-y-8'>
 
                         {/* Step 1 */}
                         <section className='space-y-3'>

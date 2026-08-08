@@ -28,7 +28,7 @@ button {
 
 /* ── Chat widget ── */
 .chat-preview {
-    @apply rounded-2xl bg-white shadow-2xl border border-indigo-100/80 p-5 relative;
+    @apply rounded-2xl bg-white shadow-2xl border border-indigo-100/80 p-4 sm:p-5 relative;
 }
 
 .chat-header {
@@ -58,7 +58,7 @@ button {
 
 /* ── Feature cards ── */
 .feature-card {
-    @apply bg-white rounded-2xl p-7 border border-zinc-100 shadow-sm
+    @apply bg-white rounded-2xl p-5 sm:p-7 border border-zinc-100 shadow-sm
            hover:shadow-xl hover:shadow-indigo-100/60 hover:-translate-y-1
            transition-all duration-300 cursor-default;
 }
@@ -74,5 +74,14 @@ button {
 
 /* ── Stat pill ── */
 .stat-pill {
-    @apply flex flex-col items-center px-6 py-3;
+    @apply flex flex-col items-center px-4 sm:px-6 py-3;
+}
+
+@media (max-width: 480px) {
+    .stat-pill {
+        @apply px-3 py-2;
+    }
+    .stat-pill span:first-child {
+        font-size: 1rem;
+    }
 }
