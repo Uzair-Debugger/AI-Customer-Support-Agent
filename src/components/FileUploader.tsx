@@ -10,7 +10,8 @@ const FileUploader = ({ userId }: { userId: string }) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size exceeds 5MB limit.')
+      toast.error('File size exceeds 5MB limit.');
+      return;
     }
     setUploadStatus('uploading')
     const loadingToast = toast.loading('Uploading file...')

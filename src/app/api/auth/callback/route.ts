@@ -1,5 +1,6 @@
 import {  NEXT_PUBLIC_APP_URL, scalekit } from "@/config/env";
 import { NextRequest, NextResponse } from "next/server";
+import { NODE_ENV } from "@/config/env";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   response.cookies.set("access_token", session.accessToken, {
     httpOnly: true,
     maxAge: 24*60*60*1000,
-    secure: process.env.NODE_ENV === "production",
+    secure: NODE_ENV === "production",
     path: "/",
   })
 
