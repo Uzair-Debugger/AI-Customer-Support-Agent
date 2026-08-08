@@ -108,6 +108,7 @@
         #nexa-messages::-webkit-scrollbar-thumb { background: ${secondaryColor}60; border-radius: 99px; }
         #nexa-input:focus { outline: none; border-color: ${primaryColor}; box-shadow: 0 0 0 3px ${primaryColor}26; }
         #nexa-send:hover { opacity: 0.85; }
+        #nexa-send:disabled { opacity: 0.4; cursor: not-allowed; }
         #nexa-btn:hover  { opacity: 0.85; transform: scale(1.08); }
 
         @media (max-width: 480px) {
@@ -306,6 +307,7 @@
     const CHAT_SVG = adaptSvgStroke(btn.innerHTML, s.primaryColor);
     const CLOSE_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     let isOpen = false;
+    let isSending = false;
     function openBox() {
       box.style.display = "flex";
       box.style.animation = "nexa-slide-up 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards";
@@ -329,8 +331,13 @@
       }
     });
     async function sendMessage() {
+      if (isSending) return;
+      isSending = true;
       const text = input.value.trim();
-      if (!text) return;
+      if (!text) {
+        isSending = false;
+        return;
+      }
       addMessage(messages, text, "user", s.primaryColor, s.secondaryColor);
       input.value = "";
       sendBtn.disabled = true;
@@ -360,6 +367,7 @@
         addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
       } finally {
         sendBtn.disabled = false;
+        isSending = false;
       }
     }
     sendBtn.addEventListener("click", sendMessage);
