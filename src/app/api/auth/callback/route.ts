@@ -1,9 +1,16 @@
 import {  NEXT_PUBLIC_APP_URL, scalekit } from "@/config/env";
 import { NextRequest, NextResponse } from "next/server";
 import { NODE_ENV } from "@/config/env";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { RATE_LIMITS } from "@/lib/rateLimit.config";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
+    const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.auth);
+    if (!rateLimitResult.success) {
+      return NextResponse.json({ message: "Too many request. Please try again later." }, { status: 429 });
+    }
+
+    const { searchParams } = new URL(req.url);
   
   const code = searchParams.get("code");
   const redirectURL = `${NEXT_PUBLIC_APP_URL}/api/auth/callback`;

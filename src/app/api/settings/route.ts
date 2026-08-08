@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { RATE_LIMITS } from "@/lib/rateLimit.config";
 
 export async function POST(req: NextRequest) {
-  try {
+    const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.settings);
+    if (!rateLimitResult.success) {
+      return NextResponse.json({ message: "Too many request. Please try again later." }, { status: 429 });
+    }
+
+    try {
     const {
       ownerId,
       businessName,

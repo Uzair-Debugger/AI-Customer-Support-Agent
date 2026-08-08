@@ -129,6 +129,7 @@ export function injectStyles(primaryColor, secondaryColor) {
         #nexa-messages::-webkit-scrollbar-thumb { background: ${secondaryColor}60; border-radius: 99px; }
         #nexa-input:focus { outline: none; border-color: ${primaryColor}; box-shadow: 0 0 0 3px ${primaryColor}26; }
         #nexa-send:hover { opacity: 0.85; }
+        #nexa-send:disabled { opacity: 0.4; cursor: not-allowed; }
         #nexa-btn:hover  { opacity: 0.85; transform: scale(1.08); }
 
         @media (max-width: 480px) {

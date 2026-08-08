@@ -9,7 +9,7 @@ html {
     --accent-dark: #4f46e5;
 }
 
-button {
+button:not(:disabled) {
     cursor: pointer;
 }
 

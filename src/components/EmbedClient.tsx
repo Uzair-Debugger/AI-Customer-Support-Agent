@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { NEXT_PUBLIC_APP_URL } from '@/config/env'
+import { NEXT_PUBLIC_APP_URL } from '@/config/client-env'
 import { motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
 import "dotenv/config"

@@ -56,6 +56,7 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
     const CLOSE_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
     let isOpen = false;
+    let isSending = false;
 
     function openBox() {
         box.style.display   = "flex";
@@ -86,8 +87,14 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
 
     /* ── 6. Send message ── */
     async function sendMessage() {
+        if (isSending) return;
+        isSending = true;
+
         const text = input.value.trim();
-        if (!text) return;
+        if (!text) {
+            isSending = false;
+            return;
+        }
 
         addMessage(messages, text, "user", s.primaryColor, s.secondaryColor);
         input.value = "";
@@ -124,6 +131,7 @@ const ownerId   = scriptTag.getAttribute("data-owner-id");
             addMessage(messages, "Sorry, something went wrong.", "ai", s.primaryColor, s.secondaryColor);
         } finally {
             sendBtn.disabled = false;
+            isSending = false;
         }
     }
 

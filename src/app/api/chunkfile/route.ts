@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { qdrantClient } from "@/config/env";
-import { embedText } from "@/lib/embeddings";
+import { embedChunks } from "@/lib/embeddings"; // Original: import { embedText } from "@/lib/embeddings";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { RATE_LIMITS } from "@/lib/rateLimit.config";
 import path from "path";
 import { extractText, getDocumentProxy } from "unpdf";
 import mammoth from "mammoth";
 
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3 MB in bytes
 const COLLECTION = "knowledge";
 const ALLOWED_EXTENSIONS = ['.txt', '.pdf', '.docx'];
 const ALLOWED_MIME_TYPES = [
@@ -30,8 +31,31 @@ async function ensureCollection() {
   }
 }
 
+export async function GET(req: NextRequest) {
+  const ownerId = req.nextUrl.searchParams.get("ownerId");
+  if (!ownerId) {
+    return NextResponse.json({ message: "Missing ownerId" }, { status: 400 });
+  }
+
+  try {
+    const result = await qdrantClient.scroll(COLLECTION, {
+      filter: { must: [{ key: "ownerId", match: { value: ownerId } }] },
+      limit: 1,
+    });
+    const exists = result.points && result.points.length > 0;
+    return NextResponse.json({ exists });
+  } catch {
+    return NextResponse.json({ message: "Failed to check file existence" }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
+    const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.fileUpload);
+    if (!rateLimitResult.success) {
+      return NextResponse.json({ message: "Too many request. Please try again later." }, { status: 429 });
+    }
+
+    const formData = await req.formData();
   const file = formData.get("file") as File | null;
   const ownerId = formData.get("ownerId") as string | null;
 
@@ -56,7 +80,6 @@ export async function POST(req: NextRequest) {
   if (mimeType === "application/pdf") {
     const pdf = await getDocumentProxy(new Uint8Array(buffer));
     const result = await extractText(pdf, { mergePages: true });
-    // extractText returns an object like { totalPages, text }
     text = result && 
             typeof result === "object" && 
             "text" in result 
@@ -70,7 +93,7 @@ export async function POST(req: NextRequest) {
   }
   console.log(text)
 
-  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
+  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 100 }); // Original: { chunkSize: 500, chunkOverlap: 50 }
   const chunks = await splitter.splitText(text);
 
   if (chunks.length === 0) {
@@ -79,15 +102,40 @@ export async function POST(req: NextRequest) {
 
   await ensureCollection();
 
-  const points = await Promise.all(
-    chunks.map(async (chunk, i) => ({
+  const existing = await qdrantClient.scroll(COLLECTION, {
+    filter: { must: [{ key: "ownerId", match: { value: ownerId } }] },
+    limit: 1,
+  });
+  if (existing.points && existing.points.length > 0) {
+    return NextResponse.json({ message: "A file is already uploaded. Delete it first before uploading a new one." }, { status: 409 });
+  }
+
+  const points = await embedChunks(chunks).then((embeddings) =>
+    chunks.map((chunk, i) => ({
       id: Math.abs(hashCode(`${ownerId}-${Date.now()}-${i}`)),
-      vector: await embedText(chunk),
+      vector: embeddings[i],
       payload: { ownerId, text: chunk },
     }))
   );
 
-  await qdrantClient.upsert(COLLECTION, { points });
+  // ──────────────────────────────────────────────────────────
+  // ORIGINAL CODE (kept for reference)
+  // ──────────────────────────────────────────────────────────
+  //
+  // const points = await Promise.all(
+  //   chunks.map(async (chunk, i) => ({
+  //     id: Math.abs(hashCode(`${ownerId}-${Date.now()}-${i}`)),
+  //     vector: await embedText(chunk),
+  //     payload: { ownerId, text: chunk },
+  //   }))
+  // );
+  // await qdrantClient.upsert(COLLECTION, { points });
+
+  const UPSERT_BATCH_SIZE = 100;
+  for (let i = 0; i < points.length; i += UPSERT_BATCH_SIZE) {
+    const batch = points.slice(i, i + UPSERT_BATCH_SIZE);
+    await qdrantClient.upsert(COLLECTION, { points: batch });
+  }
 
   return NextResponse.json({ message: `${points.length} chunks uploaded.` });
 }
@@ -98,4 +146,46 @@ function hashCode(str: string): number {
     hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
   }
   return hash >>> 0; // unsigned 32-bit int
+}
+
+
+export async function DELETE(req:NextRequest) {
+    const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.fileUpload);
+    if (!rateLimitResult.success) {
+      return NextResponse.json({ message: "Too many request. Please try again later." }, { status: 429 });
+    }
+
+    const {userId} = await req.json();
+  if(!userId){
+    return NextResponse.json({ message: "Missing userId" }, { status: 400 });
+  }
+
+  const existing = await qdrantClient.scroll(COLLECTION, {
+    filter: { must: [{ key: "ownerId", match: { value: userId } }] },
+    limit: 1,
+  });
+  if (!existing.points || existing.points.length === 0) {
+    return NextResponse.json({ message: "No files found to delete." }, { status: 404 });
+  }
+
+  const deleteChunk = await qdrantClient.delete(COLLECTION,
+    {
+      filter: {
+        must: [
+          {
+            key: "ownerId",
+            match: {
+              value: userId
+            }
+          }
+        ]
+      }
+    }
+  );
+
+  if(!deleteChunk){
+    return NextResponse.json({ message: "Failed to delete chunks" }, { status: 500 });
+  }
+
+  return NextResponse.json({message: "File chunks delete successfully."}, {status: 200})
 }
