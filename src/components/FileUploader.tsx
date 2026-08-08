@@ -32,7 +32,7 @@ const FileUploader = ({ userId } :{ userId: string }) => {
                 <h2 className='text-base font-semibold text-zinc-900'>Knowledge Files</h2>
                 <p className='text-sm text-zinc-400 mt-0.5'>Upload .txt or .md files — they'll be chunked and stored for AI retrieval</p>
               </div>
-              <div className='flex items-center gap-4'>
+              <div className='flex flex-wrap items-center gap-3 sm:gap-4'>
                 <input
                   ref={fileInputRef}
                   type='file'

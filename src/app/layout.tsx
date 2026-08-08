@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   description: "NexaSupport is an AI-powered customer support agent you can embed into any website to deliver instant, intelligent help to your customers.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

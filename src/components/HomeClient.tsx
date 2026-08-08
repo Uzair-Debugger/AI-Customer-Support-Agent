@@ -24,16 +24,24 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
   const secName = user.name.split(" ")[1] ?? ""
 
   const [togglePopup, setTogglePopup] = useState<boolean>(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
   const popupRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setTogglePopup(false)
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false)
+      }
     }
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setTogglePopup(false)
+      if (e.key === 'Escape') {
+        setTogglePopup(false)
+        setMobileMenuOpen(false)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleKeyDown)
@@ -71,6 +79,37 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
             <a href='#cta' className='hover:text-zinc-900 transition-colors'>Pricing</a>
             <a href='#cta' className='hover:text-zinc-900 transition-colors'>Docs</a>
           </nav>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className='md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-zinc-100 transition-colors'
+            aria-label='Toggle menu'
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {mobileMenuOpen ? (
+                <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+              ) : (
+                <><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>
+              )}
+            </svg>
+          </button>
+
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <div ref={mobileMenuRef} className='absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-indigo-100 md:hidden z-40'>
+              <div className='px-6 py-4 space-y-3'>
+                <a href='#feature' className='block text-sm text-zinc-600 hover:text-zinc-900 py-2' onClick={() => setMobileMenuOpen(false)}>Features</a>
+                <a href='#cta' className='block text-sm text-zinc-600 hover:text-zinc-900 py-2' onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+                <a href='#cta' className='block text-sm text-zinc-600 hover:text-zinc-900 py-2' onClick={() => setMobileMenuOpen(false)}>Docs</a>
+                {user.name ? (
+                  <button onClick={() => { navigate.push("/dashboard"); setMobileMenuOpen(false) }} className='w-full text-left text-sm text-zinc-700 hover:text-zinc-900 py-2 font-medium'>Dashboard</button>
+                ) : (
+                  <button onClick={() => { handleLogin(); setMobileMenuOpen(false) }} className='w-full text-left text-sm text-indigo-600 font-medium py-2'>Get Started →</button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Auth */}
           {user.name ? (
@@ -149,11 +188,11 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
             transition={{ duration: 0.65, delay: 0.1 }}
             className='text-center max-w-3xl mx-auto'
           >
-            <h1 className='text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight'>
+            <h1 className='text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight'>
               Intelligent Support,{' '}
               <span className='gradient-text'>Delivered Instantly</span>
             </h1>
-            <p className='mt-6 text-lg text-zinc-500 leading-relaxed max-w-2xl mx-auto'>
+            <p className='mt-5 text-base md:text-lg text-zinc-500 leading-relaxed max-w-2xl mx-auto'>
               Embed a smart AI support agent into your website in minutes.
               Give your customers instant, accurate answers powered by your
               own business knowledge — no human intervention needed.
@@ -183,7 +222,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className='mt-14 flex justify-center'
           >
-            <div className='inline-flex divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden'>
+            <div className='inline-flex flex-wrap sm:flex-nowrap divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden'>
               {stats.map((s, i) => (
                 <div key={i} className='stat-pill'>
                   <span className='text-xl font-bold text-zinc-900'>{s.value}</span>
@@ -294,7 +333,7 @@ const HomeClient = ({ user }: { user: { name: string } }) => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55 }}
-            className='relative rounded-3xl bg-indigo-600 px-10 py-14 text-center overflow-hidden'
+            className='relative rounded-3xl bg-indigo-600 px-6 sm:px-10 py-10 sm:py-14 text-center overflow-hidden'
           >
             {/* Background decoration */}
             <div className='absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2' />
