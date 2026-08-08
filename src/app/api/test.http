@@ -5,3 +5,32 @@ Content-Type: "application/json"
     "ownerId": "usp_135770899541394434",
     "message": "Hello, who are you?"
 }
+@ownerId = usp_137654293955150082
+
+### Normal request
+POST http://localhost:3000/api/chat
+Content-Type: application/json
+
+{
+  "message": "Hello",
+  "ownerId": "{{ownerId}}"
+}
+
+
+### Rapid-fire request 1
+POST http://localhost:3000/api/chat
+Content-Type: application/json
+
+{
+  "message": "test 1",
+  "ownerId": "{{ownerId}}"
+}
+
+### Rapid-fire request 2
+POST http://localhost:3000/api/chat
+Content-Type: application/json
+
+{
+  "message": "test 2",
+  "ownerId": "{{ownerId}}"
+}

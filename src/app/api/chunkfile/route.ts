@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { qdrantClient } from "@/config/env";
 import { embedText } from "@/lib/embeddings";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { RATE_LIMITS } from "@/lib/rateLimit.config";
 import path from "path";
 import { extractText, getDocumentProxy } from "unpdf";
 import mammoth from "mammoth";
@@ -49,7 +51,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
+    const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.fileUpload);
+    if (!rateLimitResult.success) {
+      return NextResponse.json({ message: "Too many request. Please try again later." }, { status: 429 });
+    }
+
+    const formData = await req.formData();
   const file = formData.get("file") as File | null;
   const ownerId = formData.get("ownerId") as string | null;
 
@@ -127,7 +134,12 @@ function hashCode(str: string): number {
 
 
 export async function DELETE(req:NextRequest) {
-  const {userId} = await req.json();
+    const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.fileUpload);
+    if (!rateLimitResult.success) {
+      return NextResponse.json({ message: "Too many request. Please try again later." }, { status: 429 });
+    }
+
+    const {userId} = await req.json();
   if(!userId){
     return NextResponse.json({ message: "Missing userId" }, { status: 400 });
   }

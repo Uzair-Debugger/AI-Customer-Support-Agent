@@ -2,18 +2,25 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { groq, qdrantClient } from "@/config/env";
 import { embedText } from "@/lib/embeddings";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { RATE_LIMITS } from "@/lib/rateLimit.config";
+
 
 export async function POST(req: NextRequest) {
+    const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.chat);
+    if (!rateLimitResult.success) {
+        return NextResponse.json({ message: "Too many request. Please try again later." }, { status: 429 })
+    }
     const { ownerId, message } = await req.json();
 
     if (!ownerId || !message) {
-        return new Response("Missing required fields", { status: 400 });
+        return NextResponse.json({ message: "Missing ownerId or message" }, { status: 400 });
     }
 
     const setting = await prisma.settings.findFirst({ where: { ownerId } });
 
     if (!setting) {
-        return new Response("Chatbot is not configured yet.", { status: 404 });
+        return NextResponse.json({message: "Chatbot is not configured yet."}, { status: 404 });
     }
 
     // Fetch relevant RAG context from Qdrant
