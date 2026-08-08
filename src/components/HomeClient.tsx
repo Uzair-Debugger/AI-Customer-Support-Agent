@@ -3,19 +3,23 @@ import React, { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { features, stats } from '@/lib/data'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 const HomeClient = ({ user }: { user: { name: string } }) => {
 
   const navigate = useRouter()
 
   const handleLogin = () => {
-    window.location.href = "/api/auth/login"
+    toast.success('Redirecting to sign in...', { duration: 2000 })
+    setTimeout(() => { window.location.href = "/api/auth/login" }, 400)
   }
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout")
-      window.location.href = "/"
+      toast.success('You have been logged out.')
+      setTimeout(() => { window.location.href = "/" }, 800)
     } catch (error) {
+      toast.error('Logout failed. Please try again.')
       console.log(error)
     }
   }

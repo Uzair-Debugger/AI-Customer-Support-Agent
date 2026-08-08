@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import FileUploader from './FileUploader'
 
 type Settings = {
@@ -65,9 +66,16 @@ const DashboardClient = ({ user, initialSettings }: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ownerId: user.ownerId, ...form }),
       })
-      setStatus(res.ok ? 'success' : 'error')
+      if (res.ok) {
+        setStatus('success')
+        toast.success('Settings saved successfully!')
+      } else {
+        setStatus('error')
+        toast.error('Failed to save settings. Please try again.')
+      }
     } catch {
       setStatus('error')
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -76,8 +84,9 @@ const DashboardClient = ({ user, initialSettings }: {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout')
-      window.location.href = '/'
-    } catch (error) { console.log(error) }
+      toast.success('You have been logged out.')
+      setTimeout(() => { window.location.href = '/' }, 800)
+    } catch (error) { toast.error('Logout failed.'); console.log(error) }
   }
 
   useEffect(() => {

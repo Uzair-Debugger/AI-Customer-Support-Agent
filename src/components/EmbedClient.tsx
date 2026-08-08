@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
 import "dotenv/config"
+import { toast } from 'sonner'
 
 const EmbedClient = ({ ownerId }: { ownerId: string }) => {
     const navigate = useRouter()
@@ -13,6 +14,7 @@ const EmbedClient = ({ ownerId }: { ownerId: string }) => {
     const handleCopy = () => {
         navigator.clipboard.writeText(snippet)
         setCopied(true)
+        toast.success('Embed snippet copied to clipboard!')
         setTimeout(() => setCopied(false), 2000)
     }
 
