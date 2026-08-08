@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { qdrantClient } from "@/config/env";
-import { embedText } from "@/lib/embeddings";
+import { embedChunks } from "@/lib/embeddings"; // Original: import { embedText } from "@/lib/embeddings";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { RATE_LIMITS } from "@/lib/rateLimit.config";
 import path from "path";
 import { extractText, getDocumentProxy } from "unpdf";
 import mammoth from "mammoth";
-
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
 const COLLECTION = "knowledge";
@@ -94,7 +93,7 @@ export async function POST(req: NextRequest) {
   }
   console.log(text)
 
-  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
+  const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 100 }); // Original: { chunkSize: 500, chunkOverlap: 50 }
   const chunks = await splitter.splitText(text);
 
   if (chunks.length === 0) {
@@ -111,15 +110,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "A file is already uploaded. Delete it first before uploading a new one." }, { status: 409 });
   }
 
-  const points = await Promise.all(
-    chunks.map(async (chunk, i) => ({
+  const points = await embedChunks(chunks).then((embeddings) =>
+    chunks.map((chunk, i) => ({
       id: Math.abs(hashCode(`${ownerId}-${Date.now()}-${i}`)),
-      vector: await embedText(chunk),
+      vector: embeddings[i],
       payload: { ownerId, text: chunk },
     }))
   );
 
-  await qdrantClient.upsert(COLLECTION, { points });
+  // ──────────────────────────────────────────────────────────
+  // ORIGINAL CODE (kept for reference)
+  // ──────────────────────────────────────────────────────────
+  //
+  // const points = await Promise.all(
+  //   chunks.map(async (chunk, i) => ({
+  //     id: Math.abs(hashCode(`${ownerId}-${Date.now()}-${i}`)),
+  //     vector: await embedText(chunk),
+  //     payload: { ownerId, text: chunk },
+  //   }))
+  // );
+  // await qdrantClient.upsert(COLLECTION, { points });
+
+  const UPSERT_BATCH_SIZE = 100;
+  for (let i = 0; i < points.length; i += UPSERT_BATCH_SIZE) {
+    const batch = points.slice(i, i + UPSERT_BATCH_SIZE);
+    await qdrantClient.upsert(COLLECTION, { points: batch });
+  }
 
   return NextResponse.json({ message: `${points.length} chunks uploaded.` });
 }

@@ -29,7 +29,7 @@ export async function checkRateLimit(
   config: RateLimitConfig
 ) {
   const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : request.ip ?? "127.0.0.1";
+  const ip = forwarded ? forwarded.split(",")[0].trim() : "127.0.0.1";
 
   const limiter = getRateLimiter(config.key, config);
   const { success, limit, remaining, reset } = await limiter.limit(ip);
