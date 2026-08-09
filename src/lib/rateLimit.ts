@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 
 export type RateLimitConfig = {
   requests: number;
   window: "1 s" | "10 s" | "1 m" | "10 m" | "1 h";
   key: string;
 };
+
+const redis = process.env.UPSTASH_REDIS_URL
+  ? new Redis({ url: process.env.UPSTASH_REDIS_URL, token: process.env.KV_REST_API_TOKEN })
+  : new Redis({
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
+    });
 
 const limiterMap = new Map<string, Ratelimit>();
 
@@ -15,7 +22,7 @@ export function getRateLimiter(key: string, config: RateLimitConfig) {
     limiterMap.set(
       key,
       new Ratelimit({
-        redis: kv,
+        redis,
         limiter: Ratelimit.slidingWindow(config.requests, config.window),
         prefix: key,
       })
