@@ -8,8 +8,10 @@ export type RateLimitConfig = {
   key: string;
 };
 
+const normalizeRedisUrl = (url: string) => url.replace(/^rediss:\/\//, "https://");
+
 const redis = process.env.UPSTASH_REDIS_URL
-  ? new Redis({ url: process.env.UPSTASH_REDIS_URL, token: process.env.KV_REST_API_TOKEN })
+  ? new Redis({ url: normalizeRedisUrl(process.env.UPSTASH_REDIS_URL), token: process.env.KV_REST_API_TOKEN })
   : new Redis({
       url: process.env.KV_REST_API_URL!,
       token: process.env.KV_REST_API_TOKEN!,
