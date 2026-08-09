@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import React from 'react'
 import { toast } from 'sonner'
 
-const FileUploader = ({ userId }: { userId: string }) => {
+const FileUploader = ({ userId, onFilesChange }: { userId: string; onFilesChange?: (hasFiles: boolean) => void }) => {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [hasFiles, setHasFiles] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -12,8 +12,11 @@ const FileUploader = ({ userId }: { userId: string }) => {
     fetch(`/api/chunkfile?ownerId=${encodeURIComponent(userId)}`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (!cancelled) setHasFiles(data?.exists === true)
-      })
+         if (!cancelled) {
+           setHasFiles(data?.exists === true)
+           onFilesChange?.(data?.exists === true)
+         }
+       })
       .catch(() => { })
     return () => { cancelled = true }
   }, [userId])
@@ -34,13 +37,15 @@ const FileUploader = ({ userId }: { userId: string }) => {
       const res = await fetch('/api/chunkfile', { method: 'POST', body: fd })
       toast.dismiss(loadingToast)
       if (res.ok) {
-        setUploadStatus('success')
-        toast.success('File uploaded and indexed successfully!')
-        setHasFiles(true)
-      } else if (res.status === 409) {
-        const data = await res.json().catch(() => ({ message: 'A file is already uploaded.' }))
-        toast.error(data.message || 'A file is already uploaded. Delete it first.')
-        setHasFiles(true)
+         setUploadStatus('success')
+         toast.success('File uploaded and indexed successfully!')
+         setHasFiles(true)
+         onFilesChange?.(true)
+       } else if (res.status === 409) {
+         const data = await res.json().catch(() => ({ message: 'A file is already uploaded.' }))
+         toast.error(data.message || 'A file is already uploaded. Delete it first.')
+         setHasFiles(true)
+         onFilesChange?.(true)
       } else {
         setUploadStatus('error')
         toast.error('File upload failed. Please try again.')
@@ -62,13 +67,15 @@ const FileUploader = ({ userId }: { userId: string }) => {
         body: JSON.stringify({ userId }),
       })
       if (res.ok) {
-        toast.success('All files deleted successfully!')
-        setHasFiles(false)
-        setUploadStatus('idle')
-      } else if (res.status === 404) {
-        const data = await res.json().catch(() => ({ message: 'No files found.' }))
-        toast.error(data.message || 'No files found to delete.')
-        setHasFiles(false)
+         toast.success('All files deleted successfully!')
+         setHasFiles(false)
+         onFilesChange?.(false)
+         setUploadStatus('idle')
+       } else if (res.status === 404) {
+         const data = await res.json().catch(() => ({ message: 'No files found.' }))
+         toast.error(data.message || 'No files found to delete.')
+         setHasFiles(false)
+         onFilesChange?.(false)
       } else {
         toast.error('Failed to delete files.')
       }

@@ -50,6 +50,7 @@ const DashboardClient = ({ user, initialSettings }: {
   const [form, setForm] = useState<Settings>(initialSettings)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [hasFiles, setHasFiles] = useState(false)
 
   const hasChanges = JSON.stringify(form) !== JSON.stringify(initialSettings)
 
@@ -400,7 +401,12 @@ const DashboardClient = ({ user, initialSettings }: {
               </div>
             </section>
 
-            <FileUploader userId={user.ownerId} />
+            <FileUploader userId={user.ownerId} onFilesChange={setHasFiles} />
+            {!hasFiles && (
+              <p className='text-xs text-amber-600 font-medium flex items-center gap-1.5'>
+                ⚠ Upload a knowledge file to enable the chatbot
+              </p>
+            )}
             {/* ── Footer ── */}
               <div className='flex flex-col sm:flex-row items-center justify-between gap-4 pt-2'>
               <AnimatePresence mode='wait'>
@@ -430,8 +436,8 @@ const DashboardClient = ({ user, initialSettings }: {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={handleSave}
-                  disabled={saving || !hasChanges || !contrastOk}
-                  title={!contrastOk ? `Increase color contrast to at least ${MIN_CONTRAST}:1 before saving` : undefined}
+                  disabled={saving || !hasChanges || !contrastOk || !hasFiles}
+                  title={!contrastOk ? `Increase color contrast to at least ${MIN_CONTRAST}:1 before saving` : !hasFiles ? 'Upload a knowledge file before saving' : undefined}
                   className='px-4 py-2 rounded-1g border border-zinc-300 text-sm hover:bg-indigo-600 bg-indigo-500 transition-colors shadow-md shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed'
                 >
                   {saving ? 'Saving…' : 'Save Changes'}

@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json({ message: "File size exceeds the limit of 500MB." }, { status: 400 });
+    return NextResponse.json({ message: "File size exceeds the limit of 3MB." }, { status: 400 });
   }
 
   const fileName = file.name;
