@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { RATE_LIMITS } from "@/lib/rateLimit.config";
+import { qdrantClient } from "@/config/env";
 
 export async function POST(req: NextRequest) {
     const rateLimitResult = await checkRateLimit(req, RATE_LIMITS.settings);
@@ -26,6 +27,15 @@ export async function POST(req: NextRequest) {
 
     if (!ownerId) {
       return NextResponse.json({ message: "Owner id is required" }, { status: 400 });
+    }
+
+    const existing = await qdrantClient.scroll("knowledge", {
+      filter: { must: [{ key: "ownerId", match: { value: ownerId } }] },
+      limit: 1,
+    });
+
+    if (!existing.points || existing.points.length === 0) {
+      return NextResponse.json({ message: "Please upload a knowledge file before saving." }, { status: 400 });
     }
 
     const data = {
